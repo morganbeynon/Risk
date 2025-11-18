@@ -1,25 +1,32 @@
+import React, { useEffect, useState } from "react";
+import MapGrid from "./MapGrid";
+import { GameEngine, Player } from "./gameEngine/gameEngine";
 
-import './App.css';
+export default function App() {
+    const [engine, setEngine] = useState(null);
+    //TESTING MAP GRID DELETE AFTER
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    useEffect(() => {
+        // 1. Create players
+        const players = [
+            new Player(1, [], 0, 0, [], 0, 0, [], "red"),
+            new Player(2, [], 0, 0, [], 0, 0, [], "blue")
+        ];
+
+        // 2. Make engine instance
+        const game = new GameEngine(players, [], [], 0, 0);
+
+        // 3. Generate map + assign owners
+        game.createTerritories();
+        game.assignTerritories();
+
+        // 4. Expose engine globally so MapGrid reads it
+        window.GameEngine = game;
+
+        setEngine(game);
+    }, []);
+
+    if (!engine) return <div>Loading...</div>;
+
+    return <MapGrid />;
 }
-
-export default App;

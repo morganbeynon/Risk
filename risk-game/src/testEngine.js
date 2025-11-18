@@ -1,4 +1,4 @@
-import { GameEngine } from './gameEngine/gameEngine.js'; // or adjust the path
+import { GameEngine } from './gameEngine/gameEngine.js'; 
 import { Player, Territory, Continent } from './gameEngine/gameEngine.js'
 ///TESTING ENGINE _ REMOVE ONCE SUCCESFULL
 

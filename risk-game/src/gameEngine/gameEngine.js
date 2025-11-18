@@ -18,8 +18,10 @@ class Player{
 
 class Territory {
     static instances = [];
-    constructor(id, troopCount, owner, adjacent = [], continent){
+    constructor(row, col,id, troopCount = 0, owner= null, adjacent = [], continent = null){
         this.id = id
+        this.row = row
+        this.col = col
         this.troopCount = troopCount
         this.owner = owner
         this.adjacent = adjacent
@@ -273,22 +275,24 @@ class GameEngine{
         let directions = [[-1, 0],[1,0],[0,-1],[0,1], [1,-1],[-1,1],[1,1],[-1,-1]]
         const neighbours = []
         for (const [px, py] of directions){
-            rx = x + px
-            ry = y + py
-            if (rx < 10 && ry < 10){
-                neighbours.push([rx,ry])
+            let rx = x + px
+            let ry = y + py
+            if (rx < 10 && ry < 10 && rx >= 0 && ry >= 0){
+                neighbours.push(`${rx},${ry}`)
             }
         }
         return neighbours
     }
 
     createTerritories(){
-        for (let i = 0; i < 10; i++){
-            for( let j = 0; i < 10; i++){
-                yN = Math.round(Math.random())
-                if (yN == 1){
-                    neighbours = this.getNeighbours(i,j)
-                    let territory = new Territory((i,j), 0, null, neighbours, null)
+        this.territories = []
+        for (let row = 0; row < 10; row++){
+            for( let col = 0; col < 10; col++){
+                const makeCheck = Math.round(Math.random())
+                if (makeCheck == 1){
+                    const neighbours = this.getNeighbours(row,col)
+                    const id = `${row},${col}`
+                    const territory = new Territory( row,col, id, 0, null, neighbours, null)
                     this.territories.push(territory)
                 }
 
@@ -298,7 +302,7 @@ class GameEngine{
     }
         
     assignTerritories(){
-        let shuffledTerritories = Territory.instances.sort(() => Math.random() - 0.5)
+        const shuffledTerritories = [...this.territories].sort(() => Math.random() - 0.5)
         for (let i = 0; i < shuffledTerritories.length; i++){
             const currentPlayer = this.players[i % this.players.length]
             const currentTerritory = shuffledTerritories[i]
@@ -309,7 +313,7 @@ class GameEngine{
     }
 
     continentValueCheck(player){
-        const continentValue = 0;
+        let continentValue = 0;
         for (const continent of Continent.instances){
             if (continent.territories.every(t => player.territories.includes(t))) {
             continentValue += continent.value;
@@ -318,7 +322,7 @@ class GameEngine{
         return continentValue
     }
     reinforcementValue(player){
-        const reTroopCount = 3
+        let reTroopCount = 3
         const terrLen = this.player.territories.length
         if (terrLen > 6){
             terrLen - 6
@@ -340,7 +344,7 @@ class GameEngine{
 
     assignColours(players){
         for ( let i = 0; i < this.players.length; i++ ){
-            players[i].colour = colours[i]
+            this.players[i].colour = colours[i]
         }
             
     }

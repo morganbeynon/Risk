@@ -1,12 +1,11 @@
 import React from 'react';
 
-export default function territoryCell(player){
-    background =  player?.colour || 'grey'
+export default function TerritoryCell(colour, onClick){
     return(
         <div
             onClick={onClick}
             style = {{
-                background,
+                background: colour,
                 width: 30,
                 height: 30
 
