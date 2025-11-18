@@ -1,8 +1,9 @@
 const Phases = ['Deploy', 'Attack', 'Reinforce']
+const colours = ['red', 'green', 'yellow', 'pink', 'purple', 'orange']
 
 
 class Player{
-    constructor(id, territories = [], totalTroops, turnNumber, continents, placedTroops, deployableTroops, cards = []){
+    constructor(id, territories = [], totalTroops, turnNumber, continents, placedTroops, deployableTroops, cards = [], colour){
         this.id = id
         this.territories = territories
         this.totalTroops = totalTroops
@@ -11,6 +12,7 @@ class Player{
         this.placedTroops = placedTroops
         this.deployableTroops = totalTroops - placedTroops
         this.cards = cards
+        this.colour = colour
     }
 }
 
@@ -266,6 +268,34 @@ class GameEngine{
             this.nextTurn()
         }
     }
+    
+    getNeighbours(x,y){
+        let directions = [[-1, 0],[1,0],[0,-1],[0,1], [1,-1],[-1,1],[1,1],[-1,-1]]
+        const neighbours = []
+        for (const [px, py] of directions){
+            rx = x + px
+            ry = y + py
+            if (rx < 10 && ry < 10){
+                neighbours.push([rx,ry])
+            }
+        }
+        return neighbours
+    }
+
+    createTerritories(){
+        for (let i = 0; i < 10; i++){
+            for( let j = 0; i < 10; i++){
+                yN = Math.round(Math.random())
+                if (yN == 1){
+                    neighbours = this.getNeighbours(i,j)
+                    let territory = new Territory((i,j), 0, null, neighbours, null)
+                    this.territories.push(territory)
+                }
+
+            } 
+        }
+
+    }
         
     assignTerritories(){
         let shuffledTerritories = Territory.instances.sort(() => Math.random() - 0.5)
@@ -303,8 +333,16 @@ class GameEngine{
     
     initialiseGame(){
         //NEED GAME GEN
+        this.assignColours()
         this.assignTerritories()
 
+    }
+
+    assignColours(players){
+        for ( let i = 0; i < this.players.length; i++ ){
+            players[i].colour = colours[i]
+        }
+            
     }
     //TO ADD
     //REDEEM CARDS - NEED UI
