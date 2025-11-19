@@ -4,8 +4,8 @@ import TerritoryCell from './territoryCell';
 
 
 export default function MapGrid(){
-    const rows = 10;
-    const cols = 10;
+    const rows = 15;
+    const cols = 15;
     const cellSize = 30;
     const engine = window.GameEngine;
     if (!engine) return <div>Loading map...</div>;
@@ -20,8 +20,8 @@ export default function MapGrid(){
         <div
             style = {{
                 display: "grid",
-                gridTemplateColumns: `repeat(${cols}, 40px)`,
-                gap: "4px",
+                gridTemplateColumns: `repeat(${cols}, 30px)`,
+                gap: "0px",
             }}
         >
             {Array.from({ length: rows * cols}).map((_, i) => {

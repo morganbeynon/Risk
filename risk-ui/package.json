@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "devextreme": "^25.1.6",
+    "devextreme-react": "^25.1.6",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "risk-game": "file:../risk-game"

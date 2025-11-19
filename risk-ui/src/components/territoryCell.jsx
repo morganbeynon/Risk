@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function TerritoryCell(colour, onClick){
+export default function TerritoryCell({colour, onClick}){
     return(
         <div
             onClick={onClick}
