@@ -6,6 +6,7 @@ import { GameEngine, Player } from "risk-game";
 export default function App() {
     const [engine, setEngine] = useState(null);
     const [players, setPlayers] = useState([])
+    const [phase, setPhase] = useState(null)
     //TESTING MAP GRID DELETE AFTER
 
     useEffect(() => {
@@ -31,6 +32,10 @@ export default function App() {
 
         setEngine(game);
         setPlayers(players)
+        setPhase(game.getPhase());
+
+        
+        
     }, []);
 
     if (!engine) return <div>Loading...</div>;
@@ -43,7 +48,8 @@ export default function App() {
                     flexDirection: "column",
                     alignItems: "center",
                     justifyContent: "flex-start",
-                    gap: "20px"
+                    gap: "20px",
+                    background: "grey"
                 }}
             >
                 <Components.TurnBar colour="green"/>
@@ -52,14 +58,26 @@ export default function App() {
                     display: "flex",
                     flexDirection: "row",
                     alignItems: "center",
+                    justifyContent: "center",
                     gap: "20px"
                 }}
                 >
-                    <Components.MapGrid />
+                    <div style={{
+                        width: "600px",   // extra space
+                        height: "600px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                    }}>
+                        <Components.MapGrid />
+                    </div>
                     <Components.ProfileStack playerList={players} />
                 </div>
-                <Components.GameBar players={players}/> 
-                <Components.Button colour="green" onClick={() => alert("Next phase")} />
+                <Components.GameBar players={players} phase = {phase}/> 
+                <Components.Button colour="green" onClick={() =>{
+                    engine.nextPhase();            // mutate engine object
+                    setPhase(engine.getPhase());   // trigger re-render
+               }} />
             </div>
     );
 }

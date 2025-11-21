@@ -2,7 +2,7 @@ import React from 'react'
 import CardStack from './cardStack'
 import PhaseIcon from './phaseIcon';
 
-export default function GameBar({players}){
+export default function GameBar({players, phase} ){
     const barWidth = 300;
     const barHeight = 50;
     return(
@@ -11,7 +11,7 @@ export default function GameBar({players}){
                 width: '100%',
                 height: '100%',
                 borderRadius: 25,
-                background: 'grey',
+                background: 'purple',
                 overflow: 'hidden',
                 position: 'relative',}}>
             
@@ -33,10 +33,10 @@ export default function GameBar({players}){
                         pointerEvents: 'none'
                     }}
                 >
-                    {"TESTING"}
+                    {phase}
                 </span>
                 <div style={{position: "absolute", right: 0, top: 0, img: 'cover'}}>
-                    <PhaseIcon phase = {"Reinforce"}/>
+                    <PhaseIcon phase = {phase}/>
                 </div>
             </div>
         </div>

@@ -8,6 +8,7 @@ export default function MapGrid(){
     const cols = 15;
     const cellSize = 30;
     const engine = window.GameEngine;
+    const player = engine.getCurrentPlayer()
     if (!engine) return <div>Loading map...</div>;
     const findTerritory = (x, y) => {
         return engine.territories.find(t => t.row === x && t.col === y)
@@ -28,11 +29,13 @@ export default function MapGrid(){
                 const x = Math.floor(i / cols);
                 const y = i % cols;
                 const currTerritory = findTerritory(x,y)
+                let troopCount = null
                 let cellColour = "grey"
                 if (currTerritory){
                     if (currTerritory.owner){
                         const player = getTerritoryPlayer(currTerritory.owner)
                         cellColour = player.colour || "grey"
+                        troopCount = currTerritory.troopCount
                     }
                     else{
                         cellColour = "blue"
@@ -41,9 +44,11 @@ export default function MapGrid(){
                 return(
                     <TerritoryCell
                         key = {`${x},${y}`}
+                        id = {player.id}
                         colour = {cellColour}
+                        troopCount={troopCount}
                         onClick = {() =>{
-                            alert(`clicked cell (${x}, ${y}) - territory: ${currTerritory?.id ?? 'none'}`)
+                            alert(`clicked cell (${x}, ${y}) - territory: ${currTerritory?.id ?? 'none'} - owner: ${currTerritory.owner ?? 'none'}`)
                         }}
                     />
                 );

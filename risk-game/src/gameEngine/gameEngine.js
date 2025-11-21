@@ -109,7 +109,7 @@ class GameEngine{
     }
 
     nextPhase(phases){
-        return this.phaseNumber + 1;
+        this.phaseNumber = (this.phaseNumber + 1) % Phases.length;
     }
 
     deploy(player, territory){
@@ -277,7 +277,7 @@ class GameEngine{
         for (const [px, py] of directions){
             let rx = x + px
             let ry = y + py
-            if (rx < 10 && ry < 10 && rx >= 0 && ry >= 0){
+            if (rx < 15 && ry < 15 && rx >= 0 && ry >= 0){
                 neighbours.push(`${rx},${ry}`)
             }
         }
@@ -286,15 +286,13 @@ class GameEngine{
 
     createTerritories(){
         this.territories = []
-        for (let row = 0; row < 10; row++){
-            for( let col = 0; col < 10; col++){
-                const makeCheck = Math.round(Math.random())
-                if (makeCheck == 1){
+        for (let row = 0; row < 15; row++){
+            for( let col = 0; col < 15; col++){
+                
                     const neighbours = this.getNeighbours(row,col)
                     const id = `${row},${col}`
                     const territory = new Territory( row,col, id, 0, null, neighbours, null)
                     this.territories.push(territory)
-                }
 
             } 
         }
@@ -304,11 +302,14 @@ class GameEngine{
     assignTerritories(){
         const shuffledTerritories = [...this.territories].sort(() => Math.random() - 0.5)
         for (let i = 0; i < shuffledTerritories.length; i++){
-            const currentPlayer = this.players[i % this.players.length]
-            const currentTerritory = shuffledTerritories[i]
-            currentTerritory.owner = currentPlayer.id
-            currentTerritory.troopCount = 1
-            currentPlayer.territories.push(currentTerritory.id)
+            const makeCheck = Math.round(Math.random()) * 3
+            if (makeCheck < 1/3){
+                const currentPlayer = this.players[i % this.players.length]
+                const currentTerritory = shuffledTerritories[i]
+                currentTerritory.owner = currentPlayer.id
+                currentTerritory.troopCount = 1
+                currentPlayer.territories.push(currentTerritory.id)
+            }
         }
     }
 
