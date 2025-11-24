@@ -1,6 +1,13 @@
 import React from 'react';
 
-export default function TerritoryCell({colour,troopCount, id, onClick}){
+export default function TerritoryCell({colour,troopCount, id, onClick, selected}){
+    let border = null
+    if (selected){
+        border = "3px solid black"
+    }
+    else{
+        border = null;
+    }
     return(
         <div
             onClick={onClick}
@@ -8,7 +15,8 @@ export default function TerritoryCell({colour,troopCount, id, onClick}){
                 background: colour,
                 width: 30,
                 height: 30,
-                position: 'relative'
+                position: 'relative',
+                border:  border
             }}
             
         >

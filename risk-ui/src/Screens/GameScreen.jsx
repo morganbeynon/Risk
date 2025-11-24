@@ -79,6 +79,7 @@ export default function GameScreen() {
                     if (engine.getPhase() == "Deploy"){
                         if(deployed){
                             engine.nextPhase();
+                            setDeployed(false)
                             setTick(t => t + 1);
                         }
                         else{
@@ -86,8 +87,12 @@ export default function GameScreen() {
                             
                         }
                     }
-                    else{
+                    else if(engine.getPhase() == "Attack"){
                         engine.nextPhase();
+                        setTick(t => t + 1);
+                }
+                else{
+                    engine.nextPhase();
                         setTick(t => t + 1);
                 }
                }} />

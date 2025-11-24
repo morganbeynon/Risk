@@ -3,35 +3,26 @@ import { GameEngine, Player, Territory,Continent } from 'risk-game';
 import TerritoryCell from './territoryCell';
 
 
+
 export default function MapGrid({phase, update}){
     const rows = 15;
     const cols = 15;
     const cellSize = 30;
     const engine = window.GameEngine;
     const player = engine.getCurrentPlayer();
-    let action = null
+    const [selectedTerritories, setSelectedTerritories] = React.useState([]);
+    const [mapData, setMapData] = React.useState(engine.territories);
+    //const [selectedCell, setSelectedCell] = React.useState(null);
+
+
     if (!engine) return <div>Loading map...</div>;
     const findTerritory = (x, y) => {
-        return engine.territories.find(t => t.row === x && t.col === y)
+        return mapData.find(t => t.row === x && t.col === y)
     }
     const getTerritoryPlayer = (id) => {
         return engine.players.find(p => p.id == id)
     }
-    if(phase == "Deploy"){
-        action = engine.deploy.bind(engine);
-    }
-    else if (phase == "Attack"){
-        action = (player, territory) => {
-        alert("Need to do attack logic");
-        return false;
-        }
-    }
-    else{
-        action = (player, territory) => {
-        alert("Need to do fortify logic");
-        return false;
-        }
-    }
+    
     return(
         <div
             style = {{
@@ -44,12 +35,13 @@ export default function MapGrid({phase, update}){
                 const x = Math.floor(i / cols);
                 const y = i % cols;
                 const currTerritory = findTerritory(x,y)
+                //const isSelected = selectedCell === `${x},${y}`;
                 let troopCount = null
                 let cellColour = "grey"
                 if (currTerritory){
                     if (currTerritory.owner){
-                        const player = getTerritoryPlayer(currTerritory.owner)
-                        cellColour = player.colour || "grey"
+                        const cellPlayer = getTerritoryPlayer(currTerritory.owner)
+                        cellColour = cellPlayer.colour || "grey"
                         troopCount = currTerritory.troopCount
                     }
                     else{
@@ -62,9 +54,44 @@ export default function MapGrid({phase, update}){
                         id = {player.id}
                         colour = {cellColour}
                         troopCount={troopCount}
+                        //selected={isSelected}
                         onClick = {() =>{
-                           let actionResult = action(player ,currTerritory);
-                            update(actionResult);
+                            if(phase == "Deploy"){
+                                let actionResult = engine.deploy(player, currTerritory);
+                                update(true);
+                            }
+                            else if (phase == "Attack"){
+                                    if (selectedTerritories.length == 0){
+                                        if (currTerritory.owner == player.id){
+                                            setSelectedTerritories([currTerritory])
+                                            //setSelectedCell(`${x},${y}`)
+                                        }
+                                        else{
+                                            alert("Select an owned territory first to attack from")
+                                        }
+                                    }
+                                    else if(selectedTerritories.length == 1){
+                                        if (currTerritory.owner == player.id){
+                                            alert("You cannot attack your own territory")
+                                            setSelectedTerritories([])
+                                        }
+                                        else{      
+                                            console.log("Before attack:", selectedTerritories[0], currTerritory);
+                                            engine.attack(player, selectedTerritories[0], currTerritory);
+                                            console.log("After attack:", selectedTerritories[0], currTerritory);
+                                            setMapData([...engine.territories])
+                                            setSelectedTerritories([])
+                                            update(true)
+                                        }
+                                        
+                                    }
+                                    return false;   
+                            }
+                            else{
+                                alert("Need to do fortify logic");
+                                return false; 
+                            }
+                            
                            
                         }}
                     />
