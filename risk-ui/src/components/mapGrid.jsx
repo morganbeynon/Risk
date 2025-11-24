@@ -3,12 +3,13 @@ import { GameEngine, Player, Territory,Continent } from 'risk-game';
 import TerritoryCell from './territoryCell';
 
 
-export default function MapGrid(){
+export default function MapGrid({phase, update}){
     const rows = 15;
     const cols = 15;
     const cellSize = 30;
     const engine = window.GameEngine;
-    const player = engine.getCurrentPlayer()
+    const player = engine.getCurrentPlayer();
+    let action = null
     if (!engine) return <div>Loading map...</div>;
     const findTerritory = (x, y) => {
         return engine.territories.find(t => t.row === x && t.col === y)
@@ -16,7 +17,21 @@ export default function MapGrid(){
     const getTerritoryPlayer = (id) => {
         return engine.players.find(p => p.id == id)
     }
-
+    if(phase == "Deploy"){
+        action = engine.deploy.bind(engine);
+    }
+    else if (phase == "Attack"){
+        action = (player, territory) => {
+        alert("Need to do attack logic");
+        return false;
+        }
+    }
+    else{
+        action = (player, territory) => {
+        alert("Need to do fortify logic");
+        return false;
+        }
+    }
     return(
         <div
             style = {{
@@ -48,7 +63,9 @@ export default function MapGrid(){
                         colour = {cellColour}
                         troopCount={troopCount}
                         onClick = {() =>{
-                            alert(`clicked cell (${x}, ${y}) - territory: ${currTerritory?.id ?? 'none'} - owner: ${currTerritory.owner ?? 'none'}`)
+                           let actionResult = action(player ,currTerritory);
+                            update(actionResult);
+                           
                         }}
                     />
                 );
