@@ -12,7 +12,7 @@ export default function MapGrid({phase, update}){
     const player = engine.getCurrentPlayer();
     const [selectedTerritories, setSelectedTerritories] = React.useState([]);
     const [mapData, setMapData] = React.useState(engine.territories);
-    //const [selectedCell, setSelectedCell] = React.useState(null);
+    const [reinforced, setReinforced] = React.useState(false);
 
 
     if (!engine) return <div>Loading map...</div>;
@@ -57,6 +57,7 @@ export default function MapGrid({phase, update}){
                         //selected={isSelected}
                         onClick = {() =>{
                             if(phase == "Deploy"){
+                                setReinforced(false)
                                 let actionResult = engine.deploy(player, currTerritory);
                                 update(true);
                             }
@@ -85,11 +86,38 @@ export default function MapGrid({phase, update}){
                                         }
                                         
                                     }
-                                    return false;   
+                                    return;   
                             }
-                            else{
-                                alert("Need to do fortify logic");
-                                return false; 
+                            else if (phase == "Reinforce"){
+                                if (reinforced == true){
+                                    alert("You can only reinforce once a turn")
+                                }
+                                else{                                
+                                    if (selectedTerritories.length == 0){
+                                            if (currTerritory.owner == player.id){
+                                                setSelectedTerritories([currTerritory])
+                                                //setSelectedCell(`${x},${y}`)
+                                            }
+                                            else{
+                                                alert("Select an owned territory first to reinforce from")
+                                            }
+                                        }
+                                        else if(selectedTerritories.length == 1){
+                                            if (currTerritory.owner != player.id){
+                                                alert("You cannot reinforce to enemy territory")
+                                                setSelectedTerritories([])
+                                            }
+                                            else{      
+                                                engine.fortify(player, selectedTerritories[0], currTerritory);
+                                                setMapData([...engine.territories])
+                                                setSelectedTerritories([])
+                                                setReinforced(true)
+                                                update(true)
+                                            }
+                                            
+                                        }
+                                        return;  
+                                }
                             }
                             
                            

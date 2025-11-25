@@ -13,7 +13,7 @@ export default function TurnBar({colour}){
                 alignItems: "center",
                 justifyContent: "center",
                 fontWeight: "bold",
-                color: "white"
+                color: "black"
             }}
         >
             Your Turn

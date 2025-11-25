@@ -30,7 +30,7 @@ export default function TerritoryCell({colour,troopCount, id, onClick, selected}
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: 'white',
+                    color: 'black',
                     fontWeight: 'bold',
                     pointerEvents: 'none',
                     display: 'flex'

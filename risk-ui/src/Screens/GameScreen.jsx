@@ -15,7 +15,7 @@ export default function GameScreen() {
         const players = [
             new Player(1, [], 0, 0, [], 0, 3, ['1','2'], "red"),
             new Player(2, [], 0, 0, [], 0, 3, [], "green"),
-            new Player(3, [], 0, 0, [], 0, 3, [], "yellow"),
+            new Player(3, [], 0, 0, [], 0, 3, [], "gold"),
             new Player(4, [], 0, 0, [], 0, 3, [], "pink"),
             new Player(5, [], 0, 0, [], 0, 3, [], "purple"),
             new Player(6, [], 0, 0, [], 0, 3, [], "orange")
@@ -96,6 +96,8 @@ export default function GameScreen() {
                         setTick(t => t + 1);
                 }
                }} />
+
+               <Components.TroopInput colour={engine.getCurrentPlayer().colour}/>
             </div>
     );
 }

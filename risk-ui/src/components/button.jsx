@@ -12,7 +12,7 @@ export default function Button({colour, onClick}){
                 height: bHeight,
                 borderRadius: 10,
                 border: "none",
-                color: "white",
+                color: "black",
                 fontWeight: "bold",
                 cursor: "pointer",
                 display: "flex",
