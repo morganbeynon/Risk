@@ -1,10 +1,11 @@
-import React from 'react'
+ import React from 'react'
 import { GameEngine, Player, Territory,Continent } from 'risk-game';
 import TerritoryCell from './territoryCell';
+import TroopInput from './troopInput';
 
 
 
-export default function MapGrid({phase, update}){
+export default function MapGrid({phase, update, render}){
     const rows = 15;
     const cols = 15;
     const cellSize = 30;
@@ -13,6 +14,9 @@ export default function MapGrid({phase, update}){
     const [selectedTerritories, setSelectedTerritories] = React.useState([]);
     const [mapData, setMapData] = React.useState(engine.territories);
     const [reinforced, setReinforced] = React.useState(false);
+    const [isVisible, setIsVisible] = React.useState(false);
+    const [firstTerritory, setFirstTerritory] = React.useState(null);
+    const [validAmount, setValidAmount] = React.useState(0)
 
 
     if (!engine) return <div>Loading map...</div>;
@@ -57,9 +61,20 @@ export default function MapGrid({phase, update}){
                         //selected={isSelected}
                         onClick = {() =>{
                             if(phase == "Deploy"){
-                                setReinforced(false)
-                                let actionResult = engine.deploy(player, currTerritory);
-                                update(true);
+                                if(player.deployableTroops > 0){
+                                    setValidAmount(player.deployableTroops)
+                                    if (currTerritory.owner == player.id){
+                                        setIsVisible(true)
+                                        setReinforced(false)
+                                        setFirstTerritory(currTerritory)                    
+                                    }
+                                    else{
+                                        alert("You can only deploy to owned territories")
+                                    }
+                                }
+                                else{
+                                    alert("You do not have any more troops to deploy")
+                                }
                             }
                             else if (phase == "Attack"){
                                     if (selectedTerritories.length == 0){
@@ -125,7 +140,20 @@ export default function MapGrid({phase, update}){
                     />
                 );
             })}
+            <TroopInput colour={engine.getCurrentPlayer().colour} validAmount={validAmount}visible={isVisible} onConfirm ={(amount) => {
+                if (firstTerritory) {
+                    engine.deploy(player, firstTerritory, amount);
+                    setMapData([...engine.territories]);
+                    setIsVisible(false);
+                    setFirstTerritory(null);
+                    render()
+                    if (player.deployableTroops === 0){
+                         update(true);
+                    }
+                }
+        }}/>
         </div>
+        
     );
 }
 

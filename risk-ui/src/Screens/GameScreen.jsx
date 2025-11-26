@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+ import React, { useEffect, useState } from "react";
 import * as Components from "../components";
 import { GameEngine, Player } from "risk-game";
 
@@ -7,6 +7,7 @@ export default function GameScreen() {
     const [engine, setEngine] = useState(null);
     const [tick, setTick] = useState(0);
     const [deployed, setDeployed] = useState(false);
+
 
     //TESTING MAP GRID DELETE AFTER
 
@@ -70,7 +71,8 @@ export default function GameScreen() {
                         justifyContent: "center",
                     }}>
                         <Components.MapGrid phase ={engine.getPhase()} update={(hasDeployed) => {setDeployed(hasDeployed);
-                            setTick(t => t + 1)}}/>
+                            setTick(t => t + 1)}} render = {() => {setTick(t => t + 1)}} 
+                        />
                     </div>
                     <Components.ProfileStack playerList={engine.players} />
                 </div>
@@ -96,8 +98,6 @@ export default function GameScreen() {
                         setTick(t => t + 1);
                 }
                }} />
-
-               <Components.TroopInput colour={engine.getCurrentPlayer().colour}/>
             </div>
     );
 }
