@@ -9,7 +9,7 @@ export default function TroopInput({onConfirm, colour, visible, validAmount}){
     const player = engine.getCurrentPlayer();
     const handleConfirm = () => {
         const numAmount = parseInt(amount);
-        if (!isNaN(numAmount) && numAmount < validAmount+1) {
+        if (!isNaN(numAmount) && numAmount <= validAmount && numAmount > 0) {
                 onConfirm(numAmount);
                 setAmount(""); 
         } else {
