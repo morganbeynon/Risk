@@ -92,6 +92,7 @@ export default function MapGrid({phase, update, render}){
                                         }
                                         else{
                                             alert("Select an owned territory Curr to attack from")
+                                            setSourceTerritories([]);
                                         }
                                     }
                                     else if(sourceTerritories.length == 1){
@@ -175,8 +176,9 @@ export default function MapGrid({phase, update, render}){
                 }
                 else {
                     currentTerritory.owner = sourceTerritories[0].owner
-                    sourceTerritories[0].troopCount -= amount
-                    currentTerritory.troopCount += amount 
+                    currentTerritory.troopCount = amount 
+                    let left = validAmount - amount 
+                    sourceTerritories[0].troopCount = left + 1
                     setMapData([...engine.territories])
                     setSourceTerritories([])
                     setIsVisible(false)

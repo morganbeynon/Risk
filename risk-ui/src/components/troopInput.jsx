@@ -7,6 +7,8 @@ export default function TroopInput({onConfirm, colour, visible, validAmount}){
     const [amount, setAmount] = React.useState("")
     const engine = window.GameEngine;
     const player = engine.getCurrentPlayer();
+    const phase = engine.getPhase()
+    let text = ""
     const handleConfirm = () => {
         const numAmount = parseInt(amount);
         if (!isNaN(numAmount) && numAmount <= validAmount && numAmount > 0) {
@@ -16,6 +18,18 @@ export default function TroopInput({onConfirm, colour, visible, validAmount}){
         alert("Enter a valid number");
         }
     };
+
+    if (phase == "Deploy"){
+        text = `You have ${validAmount} troops to deploy`
+    }
+    else if(phase == "Attack"){
+        text = `Success! You have ${validAmount} troops to move`
+    }
+    else{
+        text = `You can move ${validAmount} troops`
+    }
+
+
     return(
         
         <div 
@@ -33,7 +47,7 @@ export default function TroopInput({onConfirm, colour, visible, validAmount}){
         }} >
             <div
             style= {{
-                width: 100,
+                width: 300,
                 height: 100,
                 display: "flex",
                 flexDirection: "column",
@@ -42,8 +56,18 @@ export default function TroopInput({onConfirm, colour, visible, validAmount}){
                 background: "white",
                 borderRadius: 15,
                 gap: "10px",
+                padding: 20
             }}
             >
+                <span style={{
+                    fontWeight: "bold",
+                    textAlign: "center",
+                    color: "black"
+                        
+                    }}
+                >
+                    {text}
+                </span>
                 <input
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
