@@ -1,6 +1,7 @@
+import { captureOwnerStack } from "react"
+
 const Phases = ['Deploy', 'Attack', 'Reinforce']
 const colours = ['red', 'green', 'yellow', 'pink', 'purple', 'orange']
-
 
 class Player{
     constructor(id, territories = [], totalTroops, turnNumber, continents, placedTroops, deployableTroops, cards = [], colour){
@@ -10,7 +11,7 @@ class Player{
         this.turnNumber = turnNumber
         this.continents = continents
         this.placedTroops = placedTroops
-        this.deployableTroops = totalTroops - placedTroops
+        this.deployableTroops = deployableTroops
         this.cards = cards
         this.colour = colour
     }
@@ -97,103 +98,130 @@ class GameEngine{
     nextTurn(){
         this.turn = (this.turn + 1) % this.players.length
         this.phaseNumber = 0
-        return turn
+        let player = this.players[this.turn];
+        player.deployableTroops = this.reinforcementValue(player)
+        return this.turn
     }
 
     getCurrentPlayer(){
         return this.players[this.turn]
     }
 
-    getPhase(phases){
+    getPhase(){
         return Phases[this.phaseNumber]
     }
 
-    nextPhase(phases){
-        this.phaseNumber = (this.phaseNumber + 1) % Phases.length;
+    nextPhase(){
+        this.phaseNumber = this.phaseNumber + 1;
+        if (this.phaseNumber > 2){
+            this.nextTurn()
+            this.phaseNumber =0;
+        }
+
+        return this.getPhase()
     }
 
-    deploy(player, territory){
-        if (territory.owner == player.id){
-            territory.troops += player.deployableTroops
-            placedTroops += player.deployableTroops
-            player.deployableTroops = 0;
+    deploy(player, territory, amount){
+        let numAmount = Number(amount)
+        if (territory.owner == player.id && !isNaN(numAmount)){
+            territory.troopCount += numAmount
+            player.placedTroops += numAmount
+            player.deployableTroops -= numAmount;
+            return true;
+        }
+        else{
+            alert("You can only deploy to owned territories")
+            return false;
         }
     }
 
-    attack(player, territory, selectedTerritory ){
-        if(territory.adjacent.includes(selectedTerritory.id) && selectedTerritory.id != territory.id){
-            let ADice = territory.troopCount - 1
-            let DDice = selectedTerritory.troopCount
-            let AResults = []
-            let DResults = []
-            let cardTypes = ['Soldier', 'Cavalry', 'Tank']
-            while(ADice > 0 && DDice > 0){
-                //Generates Attacking dice results for 1 round
-                if(ADice > 2){
-                    AResults = [(Math.floor(Math.random() * 6) +1),(Math.floor(Math.random() * 6) +1),(Math.floor(Math.random() * 6) +1)]
-                }
-                else if(ADice == 2){
-                    AResults = [(Math.floor(Math.random() * 6) +1),(Math.floor(Math.random() * 6) +1)]
-                }
-                else{
-                    AResults = [(Math.floor(Math.random() * 6) +1)]
-                }
-                //Generates Defending dice results for 1 round
-                if(DDice > 1){
-                    DResults = [(Math.floor(Math.random() * 6) +1),(Math.floor(Math.random() * 6) +1)]
-                }
-                else{
-                    DResults = [(Math.floor(Math.random() * 6) +1)]
-                }
-                //Sorts result arrays numerically
-                AResults.sort((a, b) => b - a)
-                DResults.sort((a, b) => b - a)
-                //Compare highest against highest and second highest against second highest values in both results array. Whoever is lower, loses a troop
-                if (DResults.length > 1){
-                    if(AResults[0] > DResults[0]){
-                        DDice -= 1
-                    }
-                    else{
-                        ADice -= 1
-                    }
-                    if(AResults[1] > DResults[1]){
-                        DDice -= 1
-                    }
-                    else{
-                        ADice -= 1
-                    }
-                }
-                else{
-                    if(AResults[0] > DResults[0]){
-                        DDice -= 1
-                    }
-                    else{
-                        ADice -= 1
-                    }
-                }
-                
+attack(player, territory, selectedTerritory ){
+     if(territory.adjacent.includes(selectedTerritory.id) && selectedTerritory.id != territory.id){ 
+        let ADice = territory.troopCount - 1 
+        let DDice = selectedTerritory.troopCount 
+        let AResults = [] 
+        let DResults = [] 
+        let cardTypes = ['Soldier', 'Cavalry', 'Tank'] 
+        while(ADice > 0 && DDice > 0){ 
+            //Generates Attacking dice results for 1 round 
+            if(ADice > 2){ 
+                AResults = [(Math.floor(Math.random() * 6) +1),(Math.floor(Math.random() * 6) +1),(Math.floor(Math.random() * 6) +1)] 
+            } 
+            else if(ADice == 2){ 
+                AResults = [(Math.floor(Math.random() * 6) +1),(Math.floor(Math.random() * 6) +1)] 
+            } 
+            else{ 
+                AResults = [(Math.floor(Math.random() * 6) +1)] } 
+                //Generates Defending dice results for 1 round 
+            if(DDice > 1){ 
+                DResults = [(Math.floor(Math.random() * 6) +1),(Math.floor(Math.random() * 6) +1)] 
+            } 
+            else{
+                DResults = [(Math.floor(Math.random() * 6) +1)] 
             }
-            if (DDice < 1){
-                selectedTerritory.owner = territory.owner
-                selectedTerritory.troopCount = ADice
-                territory.troopCount = 1
-                newCard = Card.newCard(this.player)
-                this.player.cards = this.player.cards.push(newCard) 
+            //Sorts result arrays numerically 
+            AResults.sort((a, b) => b - a) 
+            DResults.sort((a, b) => b - a) 
+            //Compare highest against highest and second highest against second highest values in both results array. Whoever is lower, loses a troop 
+            if (DResults.length > 1){ 
+                if(AResults[0] > DResults[0]){ 
+                    DDice -= 1
+                } 
+                else{ 
+                    ADice -= 1 
+                } 
+                if(AResults[1] > DResults[1]){
+                    DDice -= 1 
+                }
+                else{ 
+                    ADice -= 1 
+                } 
+            } 
+            else{ 
+                if(AResults[0] > DResults[0]){
+                    DDice -= 1 
+                } 
+                else{ 
+                    ADice -= 1 
+                } 
+            } 
+        } 
+        if (DDice < 1){ 
+            //newCard = this.Card.newCard(this.player) 
+            // //this.player.cards = this.player.cards.push(newCard) 
+            const result = true 
+            const troops = ADice 
+            return {result, troops} 
+        } 
+        else{ 
+            territory.troopCount = 1 
+            selectedTerritory.troopCount = DDice 
+            const result = false 
+            const troops = 0 
+            return {result, troops} 
+        } 
+    } 
+    else(alert("Must attack an adjacent enemy territory"))
+}
+    fortify(player, territory, selectedTerritory, amount){
+        const connectingNeighbours = Array.from(this.getConnectingTerritories(territory.row, territory.col))
+        if(connectingNeighbours.includes(selectedTerritory.id)){
+            if(amount < territory.troopCount){
+                if (selectedTerritory.owner == territory.owner){
+                selectedTerritory.troopCount += amount
+                territory.troopCount -= amount
+                }
+                else{
+                    alert("Must fortify to an owned territory")
+                }
             }
             else{
-                territory.troopCount = 1
-                selectedTerritory.troopCount = DDice
+                alert("You must leave 1 troop behind")
             }
-        }
-        else(print("Must fortify to an adjacent enemy territory"))
-        return
-    }
-    fortify(player, territory, selectedTerritory){
-        if(territory.adjacent.includes(selectedTerritory.id) && selectedTerritory.id == territory.id){
-            selectedTerritory.troopCount = territory.troopCount
-            territory.troopCount = 1
-        } 
-        else(print("Must fortify to an adjacent owned territory"))
+        
+            
+        }  
+        else{alert("Must fortify to an adjacent territory")}
     }
 
     checkCards(player, card, territory){
@@ -258,7 +286,6 @@ class GameEngine{
         if (phase == 'Deploy'){
             //Deploy UI code here 
             deployableTroops += this.reinforcementValue(this.player)
-            
             this.nextPhase()
         }
         else if (phase == 'Attack'){
@@ -284,10 +311,37 @@ class GameEngine{
         return neighbours
     }
 
+    getConnectingTerritories(x,y){
+        let connectingNeighbours = new Set([`${x},${y}`]);
+        let visited = new Set();
+        let neighbours = this.recursiveTerritoryChecker(x,y,connectingNeighbours,visited)
+
+        return neighbours
+    }
+
+    recursiveTerritoryChecker(x,y,connectingNeighbours, visited){
+        let initialNeighbours = this.getNeighbours(x,y)
+        let id = `${x},${y}`
+        visited.add(id)
+        for (let i = 0; i < initialNeighbours.length; i++){
+            let currentNeighbour = initialNeighbours[i]
+            if (!visited.has(currentNeighbour)){
+                if (this.getCurrentPlayer().territories.includes(currentNeighbour)){
+                    connectingNeighbours.add(currentNeighbour)
+                    const [nx, ny] = currentNeighbour.split(',').map(Number);
+                    this.recursiveTerritoryChecker(nx,ny, connectingNeighbours, visited);
+                }
+            }
+            
+        }
+
+        return connectingNeighbours
+    }
+
     createTerritories(){
         this.territories = []
         for (let row = 0; row < 15; row++){
-            for( let col = 0; col < 15; col++){
+           for( let col = 0; col < 15; col++){
                 
                     const neighbours = this.getNeighbours(row,col)
                     const id = `${row},${col}`
@@ -324,14 +378,14 @@ class GameEngine{
     }
     reinforcementValue(player){
         let reTroopCount = 3
-        const terrLen = this.player.territories.length
+        let terrLen = player.territories.length
         if (terrLen > 6){
-            terrLen - 6
+            terrLen -= 6
             reTroopCount = Math.floor(terrLen / 3)
         }
         
-        continentBonus = this.continentValueCheck(player)
-        reTroopCount += continentBonus
+        //let continentBonus = this.continentValueCheck(player)
+        //reTroopCount += continentBonus
 
         return reTroopCount
     }
