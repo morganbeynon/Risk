@@ -132,11 +132,21 @@ export default function MapGrid({phase, update, render}){
                                                 alert("You cannot reinforce to enemy territory")
                                                 setSourceTerritories([])
                                             }
-                                            else{      
+                                            else{    
+                                                const connectingNeighbours = Array.from(engine.getConnectingTerritories(sourceTerritories[0].row, sourceTerritories[0].col))
+                                                if (!connectingNeighbours.includes(currTerritory.id)) {
+                                                    alert("Must reinforce to a connected territory")
+                                                    setSourceTerritories([])
+                                                    return;
+                                                }  
                                                 setValidAmount(sourceTerritories[0].troopCount-1)
+                                                if (validAmount== 0){
+                                                    alert("You must have more than 1 troop in the source territory to reinforce")
+                                                    return
+                                                }
                                                 setCurrTerritory(currTerritory)
                                                 setMapData([...engine.territories]);
-                                                setShowOverlay(true);
+                                                setIsVisible(true);
                                             }
                                             
                                         }
@@ -165,7 +175,7 @@ export default function MapGrid({phase, update, render}){
                 }
                 else if (phase == "Reinforce"){
                     if (sourceTerritories[0] && currentTerritory) {
-                        engine.fortify(player, sourceTerritories[0], currTerritory, amount);
+                        engine.fortify(player, sourceTerritories[0], currentTerritory, amount);
                         setMapData([...engine.territories]);
                         setSourceTerritories([]);
                         setCurrTerritory(null);
