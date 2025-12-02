@@ -14,7 +14,7 @@ export default function GameScreen() {
     useEffect(() => {
         // 1. Create players
         const players = [
-            new Player(1, [], 0, 0, [], 0, 3, ['1','2'], "red"),
+            new Player(1, [], 0, 0, [], 0, 3, [], "red"),
             new Player(2, [], 0, 0, [], 0, 3, [], "green"),
             new Player(3, [], 0, 0, [], 0, 3, [], "gold"),
             new Player(4, [], 0, 0, [], 0, 3, [], "pink"),

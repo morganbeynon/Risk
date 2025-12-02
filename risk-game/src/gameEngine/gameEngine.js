@@ -61,17 +61,17 @@ class Continent{
 class Card{
     static idCount = 1;
     constructor(id, owner, territoryID, type){
+        this.id = id
         this.owner = owner
         this.territoryID = territoryID
         this.type = type
     }
-    newCard(owner){
-        cardTypes = ['Soldier', 'Cavalry', 'Tank']
-        type = cardTypes[(Math.floor(Math.random() * 3) +1)]
-        territoryID = GameEngine.territories[(Math.floor(Math.random() * GameEngine.territories.length) +1)].id
-        owner = GameEngine.players[GameEngine.turn].id
-        id = idCount
-        idCount += 1
+    static newCard(engine){
+        const cardTypes = ['Soldier', 'Cavalry', 'Tank']
+        const type = cardTypes[(Math.floor(Math.random() * 3))]
+        let territoryID = engine.territories[(Math.floor(Math.random() * engine.territories.length))].id
+        const owner = engine.getCurrentPlayer().id
+        const id = Card.idCount++
         return new Card(id, owner, territoryID, type)
 
     }
@@ -187,8 +187,8 @@ attack(player, territory, selectedTerritory ){
             } 
         } 
         if (DDice < 1){ 
-            //newCard = this.Card.newCard(this.player) 
-            // //this.player.cards = this.player.cards.push(newCard) 
+            const newCard = Card.newCard(this);
+            this.getCurrentPlayer().cards.push(newCard);
             const result = true 
             const troops = ADice 
             return {result, troops} 
@@ -336,6 +336,47 @@ attack(player, territory, selectedTerritory ){
         }
 
         return connectingNeighbours
+    }
+
+    findGroup(startID){
+        const visited = new Set();
+        const stack = [startID];
+        while (stack.length > 0){
+            const id = stack.pop();
+            if (!visited.has(id)){
+                visited.add(id)
+                const terr = this.territories.find(t => t.id == id)
+                for (const adj of terr.adjacent){
+                    if (!visited.has(adj)){
+                        stack.push(adj)
+                    }
+                }
+            }
+        }
+        return visited
+    }
+
+    findAllGroups(){
+        const groups = [];
+        const visitedTotal = new Set();
+
+        for (const terr of this.territories){
+            const id = terr.id
+            if (!visitedTotal.has(id)){
+                const group = this.findGroup(id)
+                groups.push(group)
+                for (const terr in group){
+                    visitedTotal.add(terr)
+                }
+            }
+        }
+        return groups
+    }
+
+    pickLinkedTerritories(){
+        //FINISH THIS
+        groups = this.findAllGroups()
+
     }
 
     createTerritories(){

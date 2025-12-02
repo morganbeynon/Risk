@@ -91,7 +91,7 @@ export default function MapGrid({phase, update, render}){
                                             //setSelectedCell(`${x},${y}`)
                                         }
                                         else{
-                                            alert("Select an owned territory Curr to attack from")
+                                            alert("Select an owned territory to attack from")
                                             setSourceTerritories([]);
                                         }
                                     }
@@ -124,7 +124,7 @@ export default function MapGrid({phase, update, render}){
                                                 setSourceTerritories([currTerritory])
                                             }
                                             else{
-                                                alert("Select an owned territory Curr to reinforce from")
+                                                alert("Select an owned territory to reinforce from")
                                             }
                                         }
                                         else if(sourceTerritories.length == 1){
