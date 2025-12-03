@@ -1,4 +1,3 @@
-import { captureOwnerStack } from "react"
 
 const Phases = ['Deploy', 'Attack', 'Reinforce']
 const colours = ['red', 'green', 'yellow', 'pink', 'purple', 'orange']
@@ -311,6 +310,7 @@ attack(player, territory, selectedTerritory ){
         return neighbours
     }
 
+    //Link Functions 
     getConnectingTerritories(x,y){
         let connectingNeighbours = new Set([`${x},${y}`]);
         let visited = new Set();
@@ -373,11 +373,118 @@ attack(player, territory, selectedTerritory ){
         return groups
     }
 
-    pickLinkedTerritories(){
-        //FINISH THIS
-        groups = this.findAllGroups()
-
+    findDisconnectedTerritories(){
+        let groups = this.findAllGroups()
+        let disconnected = []
+        let isDisconnected = false
+        if (groups.length > 1){
+            disconnected = groups
+            isDisconnected = true
+        }
+        return {isDisconnected, disconnected}
     }
+    
+    manhattanDistance(terrA, terrB) {
+        return Math.abs(terrA.row - terrB.row) + Math.abs(terrA.col - terrB.col);
+    }
+
+    calcDistance(linkNum,group1, group2){
+        const minDistA = Array(linkNum).fill(Number.MAX_VALUE)
+        let pairs = Array(linkNum).fill(null)
+        for (const terr1 of group1){
+            const territory1 = this.territories.find(t1 => t1.id == terr1)
+            for (const terr2 of group2){
+                const territory2 = this.territories.find(t2 => t2.id == terr2)
+                let distance = this.manhattanDistance(territory1, territory2)
+                let pair = [territory1.id, territory2.id]
+                for (let i = 0; i < minDistA.length; i++){
+                    if (distance < minDistA[i]){
+                        for (let j = linkNum - 1; j > i; j--) {
+                            minDistA[j] = minDistA[j - 1];
+                            pairs[j] = pairs[j - 1];
+                        }
+                        minDistA[i] = distance
+                        pairs[i] = pair
+                        break
+                    }
+                }
+            }
+        }
+        return pairs
+    }
+
+    linkRouteCalc(link){
+        const start = link[0]
+        const end = link[1]
+        const route = [start]
+        let [x, y] = start.split(",").map(Number)
+        let [endX, endY] = end.split(",").map(Number)
+  
+        while (x !== endX || y !== endY){
+            if (x < endX){
+                x += 1
+            }
+            else if(x > endX){
+                x -= 1
+            }
+            if(y < endY){
+                y += 1
+            }
+            else if(y > endY){
+                y -= 1
+            }
+            let id = `${x},${y}`
+            route.push(id)
+        }
+        return route
+    }
+
+    addLinkDirection(route){
+        for (let i = 0; i < route.length-1; i++){
+            let [currX, currY] = route[i].split(",").map(Number)
+            let [nextX, nextY] = route[i+1].split(",").map(Number)
+            let direction = ""
+
+            if (currX == nextX && currY != nextY){
+                direction = "Vertical"
+            }
+            else if(currX != nextX && currY == nextY){
+                direction = "Horizontal"
+            }
+            else{
+                direction = "Diagonal"
+            }
+            route[i] = `${currX},${currY},${direction}`
+        }
+        return route
+    }
+
+    calcLinks(){
+        let results = this.findDisconnectedTerritories()
+        const {isDisconnected, disconnected} = results
+        const links = []
+        if(isDisconnected){
+            const linkNum = Math.round(disconnected.length * Math.random() * 2)
+            const numGroups = disconnected.length
+            const linkPerGroup = linkNum/numGroups
+            
+            for (let i = 0; i < numGroups; i++){
+                for (let j = i + 1; j < numGroups; j++){
+                        const result = this.calcDistance(linkPerGroup,disconnected[i], disconnected[j])
+                        links.push(result)
+                }
+            }
+            let routes = []
+            for (const link of links){
+                let route = this.linkRouteCalc(link)
+                let adjustedRoute = this.addLinkDirection(route)
+                routes.push(route)
+            }
+        }
+    }
+
+
+    
 
     createTerritories(){
         this.territories = []
