@@ -28,12 +28,7 @@ export default function MapGrid({phase, update, render}){
     }, [mapData, pendingOverlay]);
 
     if (!engine) return <div>Loading map...</div>;
-    const findTerritory = (x, y) => {
-        return mapData.find(t => t.row === x && t.col === y)
-    }
-    const getTerritoryPlayer = (id) => {
-        return engine.players.find(p => p.id == id)
-    }
+    
     
     return(
         <div
@@ -46,13 +41,12 @@ export default function MapGrid({phase, update, render}){
             {Array.from({ length: rows * cols}).map((_, i) => {
                 const x = Math.floor(i / cols);
                 const y = i % cols;
-                const currTerritory = findTerritory(x,y)
-                //const isSelected = selectedCell === `${x},${y}`;
+                const currTerritory = engine.findTerritory(x,y);
                 let troopCount = null
                 let cellColour = "grey"
                 if (currTerritory){
                     if (currTerritory.owner){
-                        const cellPlayer = getTerritoryPlayer(currTerritory.owner)
+                        const cellPlayer = engine.getTerritoryPlayer(currTerritory.owner)
                         cellColour = cellPlayer.colour || "grey"
                         troopCount = currTerritory.troopCount
                     }

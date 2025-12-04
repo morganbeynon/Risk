@@ -18,7 +18,7 @@ class Player{
 
 class Territory {
     static instances = [];
-    constructor(row, col,id, troopCount = 0, owner= null, adjacent = [], continent = null){
+    constructor(row, col,id, troopCount = 0, owner= null, adjacent = [], continent = null, isLink, linkDirection = null){
         this.id = id
         this.row = row
         this.col = col
@@ -26,6 +26,8 @@ class Territory {
         this.owner = owner
         this.adjacent = adjacent
         this.continent = continent
+        this.isLink = isLink
+        this.linkDirection = linkDirection
         Territory.instances.push(this)
     }
     
@@ -478,9 +480,10 @@ attack(player, territory, selectedTerritory ){
             for (const link of links){
                 let route = this.linkRouteCalc(link)
                 let adjustedRoute = this.addLinkDirection(route)
-                routes.push(route)
+                links.push(adjustedRoute)
             }
         }
+        return links
     }
 
 
@@ -493,11 +496,19 @@ attack(player, territory, selectedTerritory ){
                 
                     const neighbours = this.getNeighbours(row,col)
                     const id = `${row},${col}`
-                    const territory = new Territory( row,col, id, 0, null, neighbours, null)
+                    const territory = new Territory( row,col, id, 0, null, neighbours, null, false, null)
                     this.territories.push(territory)
 
             } 
         }
+        let links = this.calcLinks()
+        for (const link of links ){
+            let [lX,lY, direction] = link.split(",").map(Number)
+            const currTerritory = findTerritory(lX,lY);
+            currTerritory.direction = direction
+
+        }
+
 
     }
         
@@ -550,6 +561,13 @@ attack(player, territory, selectedTerritory ){
             this.players[i].colour = colours[i]
         }
             
+    }
+
+    findTerritory = (x, y) => {
+        return mapData.find(t => t.row === x && t.col === y)
+    }
+    getTerritoryPlayer = (id) => {
+        return engine.players.find(p => p.id == id)
     }
     //TO ADD
     //REDEEM CARDS - NEED UI
