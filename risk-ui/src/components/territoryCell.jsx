@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function TerritoryCell({colour,troopCount, id, onClick, selected}){
+export default function TerritoryCell({colour,troopCount, id, onClick, selected, direction}){
     let border = null
     if (selected){
         border = "3px solid black"
@@ -36,6 +36,7 @@ export default function TerritoryCell({colour,troopCount, id, onClick, selected}
                     display: 'flex'
             }}>
                 {troopCount}
+                {direction}
 
             </span>
 

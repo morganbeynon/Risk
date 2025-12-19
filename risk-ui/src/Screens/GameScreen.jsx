@@ -64,7 +64,7 @@ export default function GameScreen() {
                 }}
                 >
                     <div style={{
-                        width: "600px",   // extra space
+                        width: "600px", 
                         height: "600px",
                         display: "flex",
                         alignItems: "center",

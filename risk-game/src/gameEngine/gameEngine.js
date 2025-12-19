@@ -18,7 +18,7 @@ class Player{
 
 class Territory {
     static instances = [];
-    constructor(row, col,id, troopCount = 0, owner= null, adjacent = [], continent = null, isLink, linkDirection = null){
+    constructor(row, col,id, troopCount = 0, owner= null, adjacent = [], continent = null, isLink = false, linkDirection = null){
         this.id = id
         this.row = row
         this.col = col
@@ -348,8 +348,12 @@ attack(player, territory, selectedTerritory ){
             if (!visited.has(id)){
                 visited.add(id)
                 const terr = this.territories.find(t => t.id == id)
+                if (!terr){
+                    continue;
+                }
                 for (const adj of terr.adjacent){
-                    if (!visited.has(adj)){
+                    const adjTerr = this.territories.find(t => t.id === adj)
+                    if (adjTerr &&  adjTerr.owner !== null && !visited.has(adj)){
                         stack.push(adj)
                     }
                 }
@@ -367,7 +371,7 @@ attack(player, territory, selectedTerritory ){
             if (!visitedTotal.has(id)){
                 const group = this.findGroup(id)
                 groups.push(group)
-                for (const terr in group){
+                for (const terr of group){
                     visitedTotal.add(terr)
                 }
             }
@@ -391,6 +395,9 @@ attack(player, territory, selectedTerritory ){
     }
 
     calcDistance(linkNum,group1, group2){
+        if (!group1.size || !group2.size){
+            return []
+        }
         const minDistA = Array(linkNum).fill(Number.MAX_VALUE)
         let pairs = Array(linkNum).fill(null)
         for (const terr1 of group1){
@@ -442,7 +449,7 @@ attack(player, territory, selectedTerritory ){
     }
 
     addLinkDirection(route){
-        for (let i = 0; i < route.length-1; i++){
+        for (let i = 1; i < route.length-1; i++){
             let [currX, currY] = route[i].split(",").map(Number)
             let [nextX, nextY] = route[i+1].split(",").map(Number)
             let direction = ""
@@ -454,7 +461,12 @@ attack(player, territory, selectedTerritory ){
                 direction = "Horizontal"
             }
             else{
-                direction = "Diagonal"
+                if ((nextX > currX && nextY > currY) || (nextX < currX && nextY < currY)){
+                    direction = "Diagonal Right"
+                } 
+                else if ((nextX > currX && nextY < currY) || (nextX < currX && nextY > currY)){
+                    direction = "Diagonal Left"
+                }
             }
             route[i] = `${currX},${currY},${direction}`
         }
@@ -466,22 +478,31 @@ attack(player, territory, selectedTerritory ){
         const {isDisconnected, disconnected} = results
         const links = []
         if(isDisconnected){
-            const linkNum = Math.round(disconnected.length * Math.random() * 2)
+            const linkNum = 1
+            //const linkNum = Math.max(1, Math.round(disconnected.length * Math.random() * 2))
             const numGroups = disconnected.length
-            const linkPerGroup = linkNum/numGroups
+            const linkPerGroup = Math.max(1,Math.floor(linkNum/numGroups))
             
-            for (let i = 0; i < numGroups; i++){
-                for (let j = i + 1; j < numGroups; j++){
-                        const result = this.calcDistance(linkPerGroup,disconnected[i], disconnected[j])
-                        links.push(result)
+            for (let i = 0; i < numGroups; i++) {
+                for (let j = i + 1; j < numGroups; j++) {
+                    const pairs = this.calcDistance(linkPerGroup, disconnected[i], disconnected[j])
+                    const seen = new Set();
+                    for (const pair of pairs) {
+                        const key = pair.sort().join("|");
+                        if (!seen.has(key)) {
+                            seen.add(key);
+                            links.push(pair);
+                        }
+                    }
                 }
             }
-            let routes = []
-            for (const link of links){
-                let route = this.linkRouteCalc(link)
-                let adjustedRoute = this.addLinkDirection(route)
-                links.push(adjustedRoute)
+            const routes = []
+            for (const link of links) {
+                const route = this.linkRouteCalc(link)
+                console.log(route)
+                routes.push(this.addLinkDirection(route))
             }
+            return routes   
         }
         return links
     }
@@ -501,11 +522,16 @@ attack(player, territory, selectedTerritory ){
 
             } 
         }
-        let links = this.calcLinks()
-        for (const link of links ){
-            let [lX,lY, direction] = link.split(",").map(Number)
-            const currTerritory = findTerritory(lX,lY);
-            currTerritory.direction = direction
+        let routes = this.calcLinks()
+        for (const route of routes ){
+            for (const link of route){
+                const [lX,lY, direction] = link.split(",")
+                const currTerritory = this.findTerritory(Number(lX),Number(lY));
+                if(currTerritory && currTerritory.owner == null){
+                    currTerritory.isLink = true
+                    currTerritory.linkDirection = direction
+                }
+            }
 
         }
 
@@ -564,10 +590,10 @@ attack(player, territory, selectedTerritory ){
     }
 
     findTerritory = (x, y) => {
-        return mapData.find(t => t.row === x && t.col === y)
+        return this.territories.find(t => t.row === x && t.col === y)
     }
     getTerritoryPlayer = (id) => {
-        return engine.players.find(p => p.id == id)
+        return this.players.find(p => p.id == id)
     }
     //TO ADD
     //REDEEM CARDS - NEED UI
