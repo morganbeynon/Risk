@@ -342,6 +342,10 @@ attack(player, territory, selectedTerritory ){
 
     findGroup(startID){
         const visited = new Set();
+        const startTerr = this.territories.find(t => t.id === startID)
+        if (!startTerr || startTerr.owner === null){
+            return new Set()
+        }
         const stack = [startID];
         while (stack.length > 0){
             const id = stack.pop();
@@ -367,6 +371,7 @@ attack(player, territory, selectedTerritory ){
         const visitedTotal = new Set();
 
         for (const terr of this.territories){
+            if (terr.owner !== null){
             const id = terr.id
             if (!visitedTotal.has(id)){
                 const group = this.findGroup(id)
@@ -376,7 +381,9 @@ attack(player, territory, selectedTerritory ){
                 }
             }
         }
-        return groups
+    }
+    console.log("GROUP SIZES:", groups.map(g => g.size))
+    return groups
     }
 
     findDisconnectedTerritories(){
@@ -387,6 +394,7 @@ attack(player, territory, selectedTerritory ){
             disconnected = groups
             isDisconnected = true
         }
+        console.log(disconnected)
         return {isDisconnected, disconnected}
     }
     
@@ -455,10 +463,10 @@ attack(player, territory, selectedTerritory ){
             let direction = ""
 
             if (currX == nextX && currY != nextY){
-                direction = "Vertical"
+                direction = "Horizontal"
             }
             else if(currX != nextX && currY == nextY){
-                direction = "Horizontal"
+                direction = "Vertical"
             }
             else{
                 if ((nextX > currX && nextY > currY) || (nextX < currX && nextY < currY)){
@@ -483,32 +491,36 @@ attack(player, territory, selectedTerritory ){
             const numGroups = disconnected.length
             const linkPerGroup = Math.max(1,Math.floor(linkNum/numGroups))
             
-            for (let i = 0; i < numGroups; i++) {
-                for (let j = i + 1; j < numGroups; j++) {
-                    const pairs = this.calcDistance(linkPerGroup, disconnected[i], disconnected[j])
-                    const seen = new Set();
-                    for (const pair of pairs) {
-                        const key = pair.sort().join("|");
-                        if (!seen.has(key)) {
-                            seen.add(key);
-                            links.push(pair);
-                        }
-                    }
+            for (let i = 0; i < numGroups - 1; i++) {
+                const pairs = this.calcDistance(1,disconnected[i],disconnected[i + 1])
+                if (pairs[0]) {
+                    links.push(pairs[0])
                 }
             }
             const routes = []
             for (const link of links) {
                 const route = this.linkRouteCalc(link)
-                console.log(route)
                 routes.push(this.addLinkDirection(route))
             }
+            console.log(routes)
             return routes   
         }
         return links
     }
-
-
     
+    createLinks(){
+        let routes = this.calcLinks()
+        for (const route of routes){
+            for (const link of route){
+                const [lX,lY, direction] = link.split(",")
+                const currTerritory = this.findTerritory(Number(lX), Number(lY))
+                if (currTerritory && currTerritory.owner == null){
+                    currTerritory.isLink = true
+                    currTerritory.linkDirection = direction
+                }
+            }
+        }
+    }
 
     createTerritories(){
         this.territories = []
@@ -522,19 +534,6 @@ attack(player, territory, selectedTerritory ){
 
             } 
         }
-        let routes = this.calcLinks()
-        for (const route of routes ){
-            for (const link of route){
-                const [lX,lY, direction] = link.split(",")
-                const currTerritory = this.findTerritory(Number(lX),Number(lY));
-                if(currTerritory && currTerritory.owner == null){
-                    currTerritory.isLink = true
-                    currTerritory.linkDirection = direction
-                }
-            }
-
-        }
-
 
     }
         
@@ -576,9 +575,11 @@ attack(player, territory, selectedTerritory ){
     }
     
     initialiseGame(){
-        //NEED GAME GEN
+        console.log("initialiseGame CALLED");
         this.assignColours()
         this.assignTerritories()
+        this.createLinks()
+        
 
     }
 

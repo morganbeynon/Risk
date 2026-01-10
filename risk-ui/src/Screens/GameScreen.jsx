@@ -28,6 +28,7 @@ export default function GameScreen() {
         // 3. Generate map + assign owners
         game.createTerritories();
         game.assignTerritories();
+        game.createLinks();
 
         // 4. Expose engine globally so MapGrid reads it
         window.GameEngine = game;
