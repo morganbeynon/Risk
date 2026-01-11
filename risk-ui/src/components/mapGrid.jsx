@@ -61,11 +61,11 @@ export default function MapGrid({phase, update, render}){
                             else if (direction == "Horizontal"){
                                 shape = "-"
                             }
-                            else if (direction == "Diagonal Right"){
-                                shape = "/"
+                            else if (direction == "Diagonal Left"){
+                                shape = "\\"
                             }
                             else{
-                                shape = "\\"
+                                shape = "/"
                             }
 
                         }
