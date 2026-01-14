@@ -1,6 +1,6 @@
-
 const Phases = ['Deploy', 'Attack', 'Reinforce']
 const colours = ['red', 'green', 'yellow', 'pink', 'purple', 'orange']
+let linkRoutes = []
 
 class Player{
     constructor(id, territories = [], totalTroops, turnNumber, continents, placedTroops, deployableTroops, cards = [], colour){
@@ -137,7 +137,7 @@ class GameEngine{
     }
 
 attack(player, territory, selectedTerritory ){
-     if(territory.adjacent.includes(selectedTerritory.id) && selectedTerritory.id != territory.id){ 
+     if(this.checkAdjacency(territory,selectedTerritory, "Attack")){ 
         let ADice = territory.troopCount - 1 
         let DDice = selectedTerritory.troopCount 
         let AResults = [] 
@@ -202,11 +202,10 @@ attack(player, territory, selectedTerritory ){
             return {result, troops} 
         } 
     } 
-    else(alert("Must attack an adjacent enemy territory"))
+    else(alert("You must attack an adjacent enemy territory"))
 }
     fortify(player, territory, selectedTerritory, amount){
-        const connectingNeighbours = Array.from(this.getConnectingTerritories(territory.row, territory.col))
-        if(connectingNeighbours.includes(selectedTerritory.id)){
+        if(this.checkAdjacency(territory,selectedTerritory, "Reinforce")){ 
             if(amount < territory.troopCount){
                 if (selectedTerritory.owner == territory.owner){
                 selectedTerritory.troopCount += amount
@@ -223,6 +222,31 @@ attack(player, territory, selectedTerritory ){
             
         }  
         else{alert("Must fortify to an adjacent territory")}
+    }
+
+    checkAdjacency(territory, selectedTerritory, mode ){
+        if (mode == "Attack"){
+            if(territory.adjacent.includes(selectedTerritory.id) || (linkRoutes.some(
+                ([a, b]) =>
+                    (a === territory.id && b === selectedTerritory.id) ||
+                    (a === selectedTerritory.id && b === territory.id)
+            ))){
+                return true
+            }
+            else {
+                return false
+            }
+        }
+        else{
+            const connectingNeighbours = Array.from(this.getConnectingTerritories(territory.row, territory.col))
+            if((connectingNeighbours.includes(selectedTerritory.id))){
+                return true
+            }
+            else{ 
+                return false
+            }
+        }
+            
     }
 
     checkCards(player, card, territory){
@@ -325,16 +349,42 @@ attack(player, territory, selectedTerritory ){
         let initialNeighbours = this.getNeighbours(x,y)
         let id = `${x},${y}`
         visited.add(id)
-        for (let i = 0; i < initialNeighbours.length; i++){
-            let currentNeighbour = initialNeighbours[i]
+        for (let i = 0; i < initialNeighbours.length; i++) {
+            const currentNeighbour = initialNeighbours[i]
             if (!visited.has(currentNeighbour)){
-                if (this.getCurrentPlayer().territories.includes(currentNeighbour)){
+
+            const terr = this.territories.find(t => t.id === currentNeighbour)
+            if (terr){
+
+                if (
+                    terr.owner === this.getCurrentPlayer().id ||
+                    terr.isLink === true
+                ) {
                     connectingNeighbours.add(currentNeighbour)
-                    const [nx, ny] = currentNeighbour.split(',').map(Number);
-                    this.recursiveTerritoryChecker(nx,ny, connectingNeighbours, visited);
+                    const [nx, ny] = currentNeighbour.split(',').map(Number)
+                    this.recursiveTerritoryChecker(nx, ny, connectingNeighbours, visited)
                 }
             }
-            
+            }
+        }
+
+        for (const [a, b] of linkRoutes) {
+            if (!(a !== id && b !== id)){
+                const linkedID = a === id ? b : a
+            if (!visited.has(linkedID)){
+                const terr = this.territories.find(t => t.id === linkedID)
+                if (terr){
+                    if (
+                        terr.owner === this.getCurrentPlayer().id ||
+                        terr.isLink === true
+                    ) {
+                        connectingNeighbours.add(linkedID)
+                        const [lx, ly] = linkedID.split(',').map(Number)
+                        this.recursiveTerritoryChecker(lx, ly, connectingNeighbours, visited)
+                    }
+                }
+            }
+        }
         }
 
         return connectingNeighbours
@@ -510,16 +560,29 @@ attack(player, territory, selectedTerritory ){
     
     createLinks(){
         let routes = this.calcLinks()
+        let positionRoutes = []
         for (const route of routes){
+            let linkNum = 0;
+            const len = route.length
+            let startEnd = []
             for (const link of route){
                 const [lX,lY, direction] = link.split(",")
+                if (linkNum == 0){
+                    startEnd.push(`${lX},${lY}`)
+                }
+                else if(linkNum == len -1){
+                    startEnd.push(`${lX},${lY}`)
+                }
                 const currTerritory = this.findTerritory(Number(lX), Number(lY))
                 if (currTerritory && currTerritory.owner == null){
                     currTerritory.isLink = true
                     currTerritory.linkDirection = direction
                 }
+                linkNum +=1
             }
+            positionRoutes.push(startEnd)
         }
+        linkRoutes = positionRoutes;
     }
 
     createTerritories(){
