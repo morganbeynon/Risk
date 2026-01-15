@@ -3,7 +3,7 @@ const colours = ['red', 'green', 'yellow', 'pink', 'purple', 'orange']
 let linkRoutes = []
 
 class Player{
-    constructor(id, territories = [], totalTroops, turnNumber, continents, placedTroops, deployableTroops, cards = [], colour){
+    constructor(id, territories = [], totalTroops, turnNumber, continents, placedTroops, deployableTroops, cards = [], colour, recievedCard){
         this.id = id
         this.territories = territories
         this.totalTroops = totalTroops
@@ -13,6 +13,7 @@ class Player{
         this.deployableTroops = deployableTroops
         this.cards = cards
         this.colour = colour
+        this.recievedCard = recievedCard
     }
 }
 
@@ -61,9 +62,8 @@ class Continent{
 
 class Card{
     static idCount = 1;
-    constructor(id, owner, territoryID, type){
+    constructor(id, territoryID, type){
         this.id = id
-        this.owner = owner
         this.territoryID = territoryID
         this.type = type
     }
@@ -71,9 +71,8 @@ class Card{
         const cardTypes = ['Soldier', 'Cavalry', 'Tank']
         const type = cardTypes[(Math.floor(Math.random() * 3))]
         let territoryID = engine.territories[(Math.floor(Math.random() * engine.territories.length))].id
-        const owner = engine.getCurrentPlayer().id
         const id = Card.idCount++
-        return new Card(id, owner, territoryID, type)
+        return new Card(id, territoryID, type)
 
     }
 }
@@ -98,9 +97,11 @@ class GameEngine{
 
     nextTurn(){
         this.turn = (this.turn + 1) % this.players.length
+        this.getCurrentPlayer().recievedCard = false
         this.phaseNumber = 0
         let player = this.players[this.turn];
         player.deployableTroops = this.reinforcementValue(player)
+
         return this.turn
     }
 
@@ -188,8 +189,13 @@ attack(player, territory, selectedTerritory ){
             } 
         } 
         if (DDice < 1){ 
-            const newCard = Card.newCard(this);
-            this.getCurrentPlayer().cards.push(newCard);
+            const currPlayer = this.getCurrentPlayer()
+            if (!currPlayer.recievedCard){
+                const newCard = Card.newCard(this);
+                currPlayer.cards.push(newCard);
+            }
+            this.getCurrentPlayer().recievedCard = true
+            console.log(currPlayer.cards.length)
             const result = true 
             const troops = ADice 
             return {result, troops} 
@@ -257,23 +263,24 @@ attack(player, territory, selectedTerritory ){
         let cavalryCount = 0;
         let tankCount = 0;
         let checkOut = false;
+        let bonus = false;
 
         for (let i = 0 ; i < player.cards.length; i++){
             let currentCard = player.cards[i]
             
-            if (player.territories.includes(currentCard.territoryID)){
-                cardValues += 2;
-                //CODE HERE display on ui that +2 is added
                 extraCards.push(currentCard.territoryID)
-                if (currentCard.value == 'Soldier'){
+                if (currentCard.type == 'Soldier'){
                     soldierCount += 1
                 }
-                else if (currentCard.value == 'Cavalry'){
+                else if (currentCard.type == 'Cavalry'){
                     cavalryCount += 1
                 }
                 else{
                     tankCount += 1
                 }
+            if ((player.territories.includes(currentCard.territoryID)) && (bonus == false)){
+                cardValues += 2;
+                bonus = true
             }
         }
         if (soldierCount > 0 && cavalryCount > 0 && tankCount > 0){
@@ -301,25 +308,6 @@ attack(player, territory, selectedTerritory ){
 
         if (checkOut == true){
             // code to enable checkout
-        }
-    }
-
-    runPhases(){
-        const currentPlayer = this.getCurrentPlayer()
-        const phase = this.getPhase()
-
-        if (phase == 'Deploy'){
-            //Deploy UI code here 
-            deployableTroops += this.reinforcementValue(this.player)
-            this.nextPhase()
-        }
-        else if (phase == 'Attack'){
-            //Attack UI Code hhere
-            this.nextPhase()
-        }
-        else if (phase == 'Reinforce'){
-            //Reinforce UI CODE HERE 
-            this.nextTurn()
         }
     }
     
