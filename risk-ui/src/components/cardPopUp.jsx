@@ -1,5 +1,9 @@
 import React from 'react';
 import { GameEngine, Player } from 'risk-game';
+import shootingSoldierImage from "../images/shootingSoldier.png";
+import calvaryImage from "../images/calvary.png";
+import tankImage from "../images/tank.png";
+import blankCard from "../images/blankCard.jpg"
 
 export default function cardPopUp({onConfirm, colour, visible}){
     if (!visible) return null;
@@ -8,20 +12,18 @@ export default function cardPopUp({onConfirm, colour, visible}){
     const phase = engine.getPhase()
     let text = ""
     const handleConfirm = () => {
-        const numAmount = parseInt(amount);
-        if (!isNaN(numAmount) && numAmount <= validAmount && numAmount > 0) {
-                onConfirm(numAmount);
-                setAmount(""); 
-        } else {
-        alert("Enter a valid number");
-        }
+        onConfirm(); 
     };
-
+    const closeOverlay = () => {
+        onConfirm();
+    }
+    const cardImages = {
+        "Soldier": shootingSoldierImage,
+        "Cavalry": calvaryImage,
+        "Tank": tankImage,
+    };
     if (phase == "Deploy"){
         text = "You must have three of a kind or one of each to redeem cards"
-    }
-    else if(phase == "Attack"){
-        text = "You can only redeem cards whilst in the deploy phase"
     }
     else{
         text = "You can only redeem cards whilst in the deploy phase"
@@ -45,8 +47,9 @@ export default function cardPopUp({onConfirm, colour, visible}){
         }} >
             <div
             style= {{
-                width: 300,
-                height: 100,
+                width: 600,
+                height: 500,
+                position: "relative",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
@@ -57,6 +60,22 @@ export default function cardPopUp({onConfirm, colour, visible}){
                 padding: 20
             }}
             >
+                <button
+                    onClick={closeOverlay}
+                    style={{
+                        position: "absolute",
+                        top: 8,
+                        right: 12,
+                        background: "transparent",
+                        border: "none",
+                        fontSize: 18,
+                        fontWeight: "bold",
+                        cursor: "pointer",
+                        color: "red"
+                    }}
+                >
+                    ×
+                </button>
                 <span style={{
                     fontWeight: "bold",
                     textAlign: "center",
@@ -66,17 +85,81 @@ export default function cardPopUp({onConfirm, colour, visible}){
                 >
                     {text}
                 </span>
-                <input
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                style={{
-                    background: "white",
-                    width: 50,
-                    height: 35,
-                    fontSize: 18,
-                    textAlign: "center",
-                    fontWeight: "bold",
-                }}></input>
+                <div
+                    style={{
+                        width: "100%",
+                        display: "flex",
+                        flexWrap: "wrap",
+                        justifyContent: "center",
+                    }}
+                >
+                    {player.cards.length === 0 ? (
+                        <span style={{ color: "black", fontSize: 14 }}>
+                            No cards
+                        </span>
+                    ) : (
+                        player.cards.map(card => {
+                            const imgSrc = cardImages[card.type];
+                            let terrText = ""
+                            if (player.territories.includes(card.territoryID)){
+                                terrText =  "Your Territory\n+2 troops"
+                            }
+                            else{
+                                terrText = "Enemy Territory"
+                            }
+                                
+                            return (
+                                <div
+                                    key={card.id}
+                                    style={{
+                                        position: "relative",
+                                        width: 120,
+                                        height: 160,
+                                        margin: 10,
+                                        borderRadius: 12,
+                                        background: "#f5f5f5",
+                                        boxShadow: "0 4px 8px rgba(0,0,0,0.3)",
+                                        border: "2px solid #333",
+                                    }}
+                                >
+
+                                    {imgSrc && (
+                                        <img
+                                            src={imgSrc}
+                                            alt={card.type}
+                                            style={{
+                                                position: "absolute",
+                                                top: 35,
+                                                left: "50%",
+                                                transform: "translateX(-50%)",
+                                                width: 60,
+                                                height: 60,
+                                                objectFit: "contain",
+                                            }}
+                                        />
+                                    )}
+
+                                <div
+                                    style={{
+                                        position: "absolute",
+                                        bottom: 35,
+                                        width: "100%",
+                                        textAlign: "center",
+                                        fontSize: 12,
+                                        fontWeight: "bold",
+                                        color: "black",
+                                    }}
+                                >
+                                    {terrText}
+                                </div>
+                            
+                                </div>
+                            );
+                        })
+
+                    )}
+                </div>
+
                 <button
                 style={{
                     background: colour,

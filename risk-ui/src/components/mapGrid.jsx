@@ -1,4 +1,4 @@
- import React from 'react'
+import React from 'react'
 import { GameEngine, Player, Territory,Continent } from 'risk-game';
 import TerritoryCell from './territoryCell';
 import TroopInput from './troopInput';
