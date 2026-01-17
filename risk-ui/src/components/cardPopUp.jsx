@@ -5,14 +5,17 @@ import calvaryImage from "../images/calvary.png";
 import tankImage from "../images/tank.png";
 import blankCard from "../images/blankCard.jpg"
 
-export default function cardPopUp({onConfirm, colour, visible}){
+export default function cardPopUp({onConfirm, colour, visible, value, checkout, removeCards}){
     if (!visible) return null;
     const engine = window.GameEngine;
     const player = engine.getCurrentPlayer();
     const phase = engine.getPhase()
     let text = ""
+    let buttonColour = "grey"
     const handleConfirm = () => {
-        onConfirm(); 
+        if (checkout){
+            player.deployableTroops += value 
+        }
     };
     const closeOverlay = () => {
         onConfirm();
@@ -27,6 +30,9 @@ export default function cardPopUp({onConfirm, colour, visible}){
     }
     else{
         text = "You can only redeem cards whilst in the deploy phase"
+    }
+    if (checkout){
+        buttonColour = "white"
     }
 
 
@@ -162,7 +168,7 @@ export default function cardPopUp({onConfirm, colour, visible}){
 
                 <button
                 style={{
-                    background: colour,
+                    background: buttonColour
                 }}
                 onClick={handleConfirm}
                 >

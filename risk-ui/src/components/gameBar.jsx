@@ -2,12 +2,13 @@ import React from 'react'
 import CardStack from './cardStack'
 import PhaseIcon from './phaseIcon';
 import CardPopUp from './cardPopUp';
+import { GameEngine, Player, Territory,Continent } from 'risk-game';
 
-export default function GameBar({ player, phase }) {
+export default function GameBar({ player, phase}) {
     const barWidth = 300;
     const barHeight = 50;
     const colour = player.colour;
-
+    const engine = window.GameEngine
     const [showCards, setShowCards] = React.useState(false);
 
     let text = "";
@@ -18,6 +19,7 @@ export default function GameBar({ player, phase }) {
     } else {
         text = "Reinforce";
     }
+    const {checkOut, value, removeCards } = engine.checkCards(player)
 
     return (
         <div style={{ position: 'relative', width: barWidth, height: barHeight }}>
@@ -63,6 +65,10 @@ export default function GameBar({ player, phase }) {
                 visible={showCards}
                 colour={player.colour}
                 onConfirm={() => setShowCards(false)}
+                value = {value}
+                checkout = {checkOut}
+                removeCards = {removeCards}
+                
             />
         </div>
     );
