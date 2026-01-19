@@ -6,9 +6,9 @@ import TroopInput from './troopInput';
 
 
 export default function MapGrid({phase, update, render}){
-    const rows = 15;
-    const cols = 15;
-    const cellSize = 30;
+    const rows = 10;
+    const cols = 10;
+    const cellSize = 60;
     const engine = window.GameEngine;
     const player = engine.getCurrentPlayer();
     const [sourceTerritories, setSourceTerritories] = React.useState([]);
@@ -34,7 +34,7 @@ export default function MapGrid({phase, update, render}){
         <div
             style = {{
                 display: "grid",
-                gridTemplateColumns: `repeat(${cols}, 30px)`,
+                gridTemplateColumns: `repeat(${cols}, 45px)`,
                 gap: "0px",
             }}
         >

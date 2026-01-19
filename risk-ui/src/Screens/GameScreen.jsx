@@ -18,8 +18,6 @@ export default function GameScreen() {
             new Player(2, [], 0, 0, [], 0, 3, [], "green", false),
             new Player(3, [], 0, 0, [], 0, 3, [], "gold", false),
             new Player(4, [], 0, 0, [], 0, 3, [], "pink", false),
-            new Player(5, [], 0, 0, [], 0, 3, [], "purple", false),
-            new Player(6, [], 0, 0, [], 0, 3, [], "orange", false)
         ];
 
         // 2. Make engine instance
@@ -50,8 +48,8 @@ export default function GameScreen() {
                     flexDirection: "column",
                     alignItems: "center",
                     justifyContent: "flex-start",
-                    gap: "20px",
-                    background: "grey"
+                    gap: "0px",
+                    background: "blue"
                 }}
             >
                 <Components.TurnBar colour= {engine.getCurrentPlayer().colour}/>
@@ -61,7 +59,7 @@ export default function GameScreen() {
                     flexDirection: "row",
                     alignItems: "center",
                     justifyContent: "center",
-                    gap: "20px"
+                    gap: "0px"
                 }}
                 >
                     <div style={{

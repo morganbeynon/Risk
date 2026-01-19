@@ -12,9 +12,21 @@ export default function cardPopUp({onConfirm, colour, visible, value, checkout, 
     const phase = engine.getPhase()
     let text = ""
     let buttonColour = "grey"
+    let cursor = "not-allowed"
+    let opacity = 0.5
     const handleConfirm = () => {
         if (checkout){
-            player.deployableTroops += value 
+            const troops = Number(value);
+            if (Number.isNaN(troops)){
+                console.log("returned")
+                return;
+            } 
+            player.deployableTroops += troops
+            onConfirm();
+
+        }
+        else{
+            return
         }
     };
     const closeOverlay = () => {
@@ -31,8 +43,10 @@ export default function cardPopUp({onConfirm, colour, visible, value, checkout, 
     else{
         text = "You can only redeem cards whilst in the deploy phase"
     }
-    if (checkout){
+    if (checkout && phase == "Deploy"){
         buttonColour = "white"
+        cursor = "pointer"
+        opacity = 1
     }
 
 
@@ -54,7 +68,7 @@ export default function cardPopUp({onConfirm, colour, visible, value, checkout, 
             <div
             style= {{
                 width: 600,
-                height: 500,
+                height: 400,
                 position: "relative",
                 display: "flex",
                 flexDirection: "column",
@@ -123,9 +137,9 @@ export default function cardPopUp({onConfirm, colour, visible, value, checkout, 
                                         height: 160,
                                         margin: 10,
                                         borderRadius: 12,
-                                        background: "#f5f5f5",
-                                        boxShadow: "0 4px 8px rgba(0,0,0,0.3)",
-                                        border: "2px solid #333",
+                                        background: "white",
+                                        boxShadow: "0 4px 8px rgba(0,0,0,0.7)",
+                                        border: "2px solid #000000",
                                     }}
                                 >
 
@@ -168,7 +182,10 @@ export default function cardPopUp({onConfirm, colour, visible, value, checkout, 
 
                 <button
                 style={{
-                    background: buttonColour
+                    background: buttonColour,
+                    cursor: cursor,
+                    opacity: opacity,
+                   border: "2px solid #000000"
                 }}
                 onClick={handleConfirm}
                 >

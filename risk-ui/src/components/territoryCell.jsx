@@ -13,8 +13,8 @@ export default function TerritoryCell({colour,troopCount, id, onClick, selected,
             onClick={onClick}
             style = {{
                 background: colour,
-                width: 30,
-                height: 30,
+                width: 45,
+                height: 45,
                 position: 'relative',
                 border:  border
             }}
