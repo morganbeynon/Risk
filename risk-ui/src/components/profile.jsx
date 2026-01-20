@@ -17,7 +17,9 @@ export default function Profile({colour, name}){
             }}   
             /> 
             <span 
-                style={{fontSize: 14, marginTop: 5}}
+                style={{fontSize: 14, 
+                    marginTop: 5,
+                    color: "white"}}
             >
                 {name}
             </span>

@@ -1,4 +1,4 @@
- import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import * as Components from "../components";
 import { GameEngine, Player } from "risk-game";
 
@@ -42,29 +42,31 @@ export default function GameScreen() {
     return(
             <div
                 style={{
-                    width: "100%",
-                    minHeight: "100vh",            
+                    width: "100vw",
+                    height: "100vh",
                     display: "flex",
                     flexDirection: "column",
+                    background: "blue",
+                    overflow: "hidden",
                     alignItems: "center",
-                    justifyContent: "flex-start",
-                    gap: "0px",
-                    background: "blue"
                 }}
             >
-                <Components.TurnBar colour= {engine.getCurrentPlayer().colour}/>
+                <div style={{ marginBottom: "12px" }}>
+                    <Components.TurnBar colour={engine.getCurrentPlayer().colour} />
+                </div>
                 <div
                 style={{
                     display: "flex",
                     flexDirection: "row",
                     alignItems: "center",
                     justifyContent: "center",
-                    gap: "0px"
+                    gap: "10px",
+                    height: "500px"
                 }}
                 >
                     <div style={{
-                        width: "600px", 
-                        height: "600px",
+                        width: "500px", 
+                        height: "500px",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -73,9 +75,23 @@ export default function GameScreen() {
                             setTick(t => t + 1)}} render = {() => {setTick(t => t + 1)}} 
                         />
                     </div>
-                    <Components.ProfileStack playerList={engine.players} />
+                    <div
+                        style={{
+                            background: "#111",
+                            padding: "5px",
+                            borderRadius: "5px",
+                            boxShadow: "0 4px 0px rgba(0,0,0,0.4)",
+                        }}
+                        >
+                        <Components.ProfileStack playerList={engine.players} />
+                        </div>
                 </div>
-                <Components.GameBar player={engine.getCurrentPlayer()} phase = {engine.getPhase()}/> 
+                <div style={{ marginBottom: "8px" }}>
+                    <Components.GameBar
+                        player={engine.getCurrentPlayer()}
+                        phase={engine.getPhase()}
+                    />
+                </div>
                 <Components.Button colour={engine.getCurrentPlayer().colour} onClick={() =>{
                     if (engine.getPhase() == "Deploy"){
                         if(deployed){

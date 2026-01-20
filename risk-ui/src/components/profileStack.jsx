@@ -13,7 +13,8 @@ export default function ProfileStack({playerList}){
             style={{display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                justifyContent: "center"}}
+                justifyContent: "center",
+                background: "black"}}
         >
             <div>
                 {names.map((name, i) => (
