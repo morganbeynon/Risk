@@ -139,6 +139,9 @@ class GameEngine{
 
 attack(player, territory, selectedTerritory ){
      if(this.checkAdjacency(territory,selectedTerritory, "Attack")){ 
+        if (player.id == selectedTerritory.id){
+            return
+        }
         let ADice = territory.troopCount - 1 
         let DDice = selectedTerritory.troopCount 
         let AResults = [] 
@@ -255,35 +258,50 @@ attack(player, territory, selectedTerritory ){
             
     }
 
-    checkCards(player, card, territory){
-        //Write code to show cards in UI
+    checkCards(player){
         let cardValues = 0;
-        let extraCards = [];
+
         let soldierCount = 0;
         let cavalryCount = 0;
         let tankCount = 0;
         let checkOut = false;
         let bonus = false;
-
+        let removeCards = []
+        let inSoldier = 0
+        let inTank = 0
+        let inCav = 0
         for (let i = 0 ; i < player.cards.length; i++){
             let currentCard = player.cards[i]
-            
-                extraCards.push(currentCard.territoryID)
-                if (currentCard.type == 'Soldier'){
-                    soldierCount += 1
-                }
-                else if (currentCard.type == 'Cavalry'){
-                    cavalryCount += 1
-                }
-                else{
-                    tankCount += 1
-                }
+            if (currentCard.type == "Soldier"){
+                soldierCount += 1
+            }
+            else if (currentCard.type == "Cavalry"){
+                cavalryCount += 1
+            }
+            else{
+                tankCount += 1
+            }
             if ((player.territories.includes(currentCard.territoryID)) && (bonus == false)){
                 cardValues += 2;
                 bonus = true
             }
         }
         if (soldierCount > 0 && cavalryCount > 0 && tankCount > 0){
+            for (let j = 0 ; j < player.cards.length; j++){
+                let innerCard = player.cards[j]
+                if (innerCard.type == "Soldier" && inSoldier == 0){
+                    inSoldier += 1
+                    removeCards.push(innerCard)
+                }
+                else if(innerCard.type == "Tank" && inTank == 0){
+                    removeCards.push(innerCard)
+                    inTank += 1
+                }
+                else if( innerCard.type == "Cavalry" && inCav == 0){
+                    removeCards.push(innerCard)
+                    inCav += 1
+                }
+            }
             cardValues += 10
             soldierCount -= 1
             cavalryCount -= 1
@@ -291,24 +309,45 @@ attack(player, territory, selectedTerritory ){
             checkOut = true
         }
         else if (tankCount >= 3){
+            for (let j = 0 ; j < player.cards.length; j++){
+                let innerCard = player.cards[j]
+                if (innerCard.type == "Tank" && inTank < 3){
+                    inTank += 1
+                    removeCards.push(innerCard)
+                }
+                
+            }
             cardValues += 7
             tankCount -= 3
             checkOut = true
         }
         else if (cavalryCount >= 3){
+            for (let j = 0 ; j < player.cards.length; j++){
+                let innerCard = player.cards[j]
+                if (innerCard.type == "Calvary" && inCav < 3){
+                    inCav += 1
+                    removeCards.push(innerCard)
+                }
+                
+            }
             cardValues += 5
             cavalryCount -= 3
             checkOut = true
         }
         else if (soldierCount >= 3){
+            for (let j = 0 ; j < player.cards.length; j++){
+                let innerCard = player.cards[j]
+                if (innerCard.type == "Soldier" && inSoldier < 3){
+                    inSoldier += 1
+                    removeCards.push(innerCard)
+                }
+                
+            }
             cardValues += 3
             soldierCount -= 3
             checkOut = true
         }
-
-        if (checkOut == true){
-            // code to enable checkout
-        }
+        return {checkOut, cardValues, removeCards}
     }
     
     getNeighbours(x,y){
