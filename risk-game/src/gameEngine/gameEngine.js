@@ -365,11 +365,10 @@ attack(player, territory, selectedTerritory ){
 
     //Link Functions 
     getConnectingTerritories(x,y){
-        let connectingNeighbours = new Set([`${x},${y}`]);
+        let connectingNeighbours = new Set();
         let visited = new Set();
-        let neighbours = this.recursiveTerritoryChecker(x,y,connectingNeighbours,visited)
-
-        return neighbours
+        this.recursiveTerritoryChecker(x,y,connectingNeighbours,visited)
+        return connectingNeighbours
     }
 
     recursiveTerritoryChecker(x,y,connectingNeighbours, visited){
@@ -510,27 +509,39 @@ attack(player, territory, selectedTerritory ){
     linkRouteCalc(link){
         const start = link[0]
         const end = link[1]
-        const route = [start]
+        const route = [[start]]
         let [x, y] = start.split(",").map(Number)
         let [endX, endY] = end.split(",").map(Number)
+        const visited = new Set()
+        visited.add(start)
   
-        while (x !== endX || y !== endY){
-            if (x < endX){
-                x += 1
+        while (route.length > 0){
+            const path = route.shift()
+            const curr = path[path.length -1]
+            if (curr == end){
+                return path;
             }
-            else if(x > endX){
-                x -= 1
+            const terr = this.territories.find(t => t.id === curr)
+            if (!terr){
+                continue
             }
-            if(y < endY){
-                y += 1
+
+
+            for (const neigh of terr.adjacent) {
+                if (visited.has(neigh)) continue;
+
+                const neighTerr = this.territories.find(t => t.id === neigh)
+                if (!neighTerr){
+                    continue;
+                }
+
+                if (neigh.owner === null || neigh === end) {
+                    visited.add(neigh);
+                    queue.push([...path, neigh]);
+                }
             }
-            else if(y > endY){
-                y -= 1
-            }
-            let id = `${x},${y}`
-            route.push(id)
-        }
-        return route
+        } 
+        return null 
     }
 
     addLinkDirection(route){
@@ -539,11 +550,11 @@ attack(player, territory, selectedTerritory ){
             let [nextX, nextY] = route[i+1].split(",").map(Number)
             let direction = ""
 
-            if (currX == nextX && currY != nextY){
-                direction = "Horizontal"
-            }
-            else if(currX != nextX && currY == nextY){
+            if (currX !== nextX && currY === nextY){
                 direction = "Vertical"
+            }
+            else if(currX === nextX && currY !== nextY){
+                direction = "Horizontal"
             }
             else{
                 if ((nextX > currX && nextY > currY) || (nextX < currX && nextY < currY)){
@@ -577,7 +588,9 @@ attack(player, territory, selectedTerritory ){
             const routes = []
             for (const link of links) {
                 const route = this.linkRouteCalc(link)
-                routes.push(this.addLinkDirection(route))
+                if (route) {
+                    routes.push(this.addLinkDirection(route));
+                }
             }
             console.log(routes)
             return routes   
