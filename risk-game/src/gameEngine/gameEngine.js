@@ -198,7 +198,6 @@ attack(player, territory, selectedTerritory ){
                 currPlayer.cards.push(newCard);
             }
             this.getCurrentPlayer().recievedCard = true
-            console.log(currPlayer.cards.length)
             const result = true 
             const troops = ADice 
             return {result, troops} 
@@ -356,7 +355,7 @@ attack(player, territory, selectedTerritory ){
         for (const [px, py] of directions){
             let rx = x + px
             let ry = y + py
-            if (rx < 15 && ry < 15 && rx >= 0 && ry >= 0){
+            if (rx < 10 && ry < 10 && rx >= 0 && ry >= 0){
                 neighbours.push(`${rx},${ry}`)
             }
         }
@@ -470,7 +469,7 @@ attack(player, territory, selectedTerritory ){
             disconnected = groups
             isDisconnected = true
         }
-        console.log(disconnected)
+        console.log("Disconnected", disconnected)
         return {isDisconnected, disconnected}
     }
     
@@ -535,9 +534,9 @@ attack(player, territory, selectedTerritory ){
                     continue;
                 }
 
-                if (neigh.owner === null || neigh === end) {
+                if (neighTerr.owner === null || neigh === end) {
                     visited.add(neigh);
-                    queue.push([...path, neigh]);
+                    route.push([...path, neigh]);
                 }
             }
         } 
@@ -546,6 +545,7 @@ attack(player, territory, selectedTerritory ){
 
     addLinkDirection(route){
         for (let i = 1; i < route.length-1; i++){
+            let [prevX, prevY] = route[i-1].split(",").map(Number)
             let [currX, currY] = route[i].split(",").map(Number)
             let [nextX, nextY] = route[i+1].split(",").map(Number)
             let direction = ""
@@ -557,11 +557,16 @@ attack(player, territory, selectedTerritory ){
                 direction = "Horizontal"
             }
             else{
-                if ((nextX > currX && nextY > currY) || (nextX < currX && nextY < currY)){
-                    direction = "Diagonal Right"
+                if ((prevX === currX && prevY == currY -1 && nextX === currX +1 && nextY === currY) 
+                    || (nextX === currX && nextY == currY -1 && prevX === currX +1 && prevY === currY)){
+                    direction = "North East"
+                }
+                else if ()
+                else if ((nextX > currX && nextY > currY) || (nextX < currX && nextY < currY)){
+                    direction = "Diagonal Left"
                 } 
                 else if ((nextX > currX && nextY < currY) || (nextX < currX && nextY > currY)){
-                    direction = "Diagonal Left"
+                    direction = "Diagonal Right"
                 }
             }
             route[i] = `${currX},${currY},${direction}`
@@ -592,7 +597,7 @@ attack(player, territory, selectedTerritory ){
                     routes.push(this.addLinkDirection(route));
                 }
             }
-            console.log(routes)
+            console.log("Routes",routes)
             return routes   
         }
         return links
@@ -627,8 +632,8 @@ attack(player, territory, selectedTerritory ){
 
     createTerritories(){
         this.territories = []
-        for (let row = 0; row < 15; row++){
-           for( let col = 0; col < 15; col++){
+        for (let row = 0; row < 10; row++){
+           for( let col = 0; col < 10; col++){
                 
                     const neighbours = this.getNeighbours(row,col)
                     const id = `${row},${col}`

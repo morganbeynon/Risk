@@ -1,45 +1,67 @@
 import React from 'react';
+import horizontal from "../images/horizontal.png";
+import vertical from "../images/vertical.png";
+import diagonalLeft from "../images/leftDiagonal.png";
+import diagonalRight from "../images/rightDiagonal.png";
 
-export default function TerritoryCell({colour,troopCount, id, onClick, selected, direction}){
-    let border = null
-    if (selected){
-        border = "3px solid black"
-    }
-    else{
-        border = null;
-    }
-    return(
-        <div
-            onClick={onClick}
-            style = {{
-                background: colour,
-                width: 45,
-                height: 45,
-                position: 'relative',
-                border:  border
-            }}
-            
-        >
-            <span
-            style= {{
-                position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'black',
-                    fontWeight: 'bold',
-                    pointerEvents: 'none',
-                    display: 'flex'
-            }}>
-                {troopCount}
-                {direction}
+export default function TerritoryCell({
+  colour,
+  troopCount,
+  onClick,
+  selected,
+  direction,
+  isLink
+}) {
+  let photoD = null;
 
-            </span>
+  if (direction === "Vertical") {
+    photoD = vertical;
+  } else if (direction === "Horizontal") {
+    photoD = horizontal;
+  } else if (direction === "Diagonal Left") {
+    photoD = diagonalLeft;
+  } else if (direction === "Diagonal Right") {
+    photoD = diagonalRight;
+  }
 
-        </div>
-    );
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        background: colour,
+        width: 45,
+        height: 45,
+        position: "relative",
+        border: selected ? "3px solid black" : null
+      }}
+    >
+      {isLink && photoD && (
+        <img
+          src={photoD}
+          alt=""
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            pointerEvents: "none"
+          }}
+        />
+      )}
+
+      <span
+        style={{
+          position: "absolute",
+          inset: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontWeight: "bold",
+          pointerEvents: "none"
+        }}
+      >
+        {troopCount}
+      </span>
+    </div>
+  );
 }

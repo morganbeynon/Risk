@@ -14,7 +14,7 @@ export default function ProfileStack({playerList}){
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                background: "black"}}
+            }}
         >
             <div>
                 {names.map((name, i) => (

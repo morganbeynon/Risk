@@ -53,23 +53,6 @@ export default function MapGrid({phase, update, render}){
                     }
                     else{
                         cellColour = "blue"
-                        if (currTerritory.isLink){
-                            let direction = currTerritory.linkDirection
-                            if (direction == "Vertical"){
-                                shape = "|"
-                            }
-                            else if (direction == "Horizontal"){
-                                shape = "-"
-                            }
-                            else if (direction == "Diagonal Left"){
-                                shape = "\\"
-                            }
-                            else{
-                                shape = "/"
-                            }
-
-                        }
-                        
                     }
                 }
                 return(
@@ -78,7 +61,8 @@ export default function MapGrid({phase, update, render}){
                         id = {player.id}
                         colour = {cellColour}
                         troopCount={troopCount}
-                        direction = {shape}
+                        direction = {currTerritory.linkDirection}
+                        isLink={currTerritory.isLink}
                         onClick = {() =>{
                             if(phase == "Deploy"){
                                 if(player.deployableTroops > 0){

@@ -3,7 +3,6 @@ import { GameEngine, Player } from 'risk-game';
 import shootingSoldierImage from "../images/shootingSoldier.png";
 import calvaryImage from "../images/calvary.png";
 import tankImage from "../images/tank.png";
-import blankCard from "../images/blankCard.jpg"
 
 export default function cardPopUp({onConfirm, colour, visible, value, checkout, removeCards}){
     if (!visible) return null;
@@ -14,6 +13,7 @@ export default function cardPopUp({onConfirm, colour, visible, value, checkout, 
     let buttonColour = "grey"
     let cursor = "not-allowed"
     let opacity = 0.5
+    
     const handleConfirm = () => {
         if (checkout){
             const troops = Number(value);
