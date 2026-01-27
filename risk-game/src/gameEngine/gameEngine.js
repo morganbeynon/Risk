@@ -350,7 +350,22 @@ attack(player, territory, selectedTerritory ){
     }
     
     getNeighbours(x,y){
-        let directions = [[-1, 0],[1,0],[0,-1],[0,1], [1,-1],[-1,1],[1,1],[-1,-1]]
+        //NOT FOR LINKS - need it for attacking etc
+        let directions = [[1,0], [-1,0], [0,1], [0,-1],[1,1], [1,-1], [-1,1], [-1,-1]]
+        const neighbours = []
+        for (const [px, py] of directions){
+            let rx = x + px
+            let ry = y + py
+            if (rx < 10 && ry < 10 && rx >= 0 && ry >= 0){
+                neighbours.push(`${rx},${ry}`)
+            }
+        }
+        return neighbours
+    }
+
+    getDirectNeighbours(x,y){
+        //FOR LINKS - does not look at diagonals
+        let directions = [[1,0], [-1,0], [0,1], [0,-1]]
         const neighbours = []
         for (const [px, py] of directions){
             let rx = x + px
@@ -526,7 +541,7 @@ attack(player, territory, selectedTerritory ){
             }
 
 
-            for (const neigh of terr.adjacent) {
+            for (const neigh of this.getDirectNeighbours(terr.row, terr.col)) {
                 if (visited.has(neigh)) continue;
 
                 const neighTerr = this.territories.find(t => t.id === neigh)
@@ -543,36 +558,80 @@ attack(player, territory, selectedTerritory ){
         return null 
     }
 
-    addLinkDirection(route){
-        for (let i = 1; i < route.length-1; i++){
-            let [prevX, prevY] = route[i-1].split(",").map(Number)
-            let [currX, currY] = route[i].split(",").map(Number)
-            let [nextX, nextY] = route[i+1].split(",").map(Number)
-            let direction = ""
+    orthogonalizePath(route) {
+        const result = [route[0]]
+        const visited = new Set(result)
 
-            if (currX !== nextX && currY === nextY){
-                direction = "Vertical"
-            }
-            else if(currX === nextX && currY !== nextY){
-                direction = "Horizontal"
-            }
-            else{
-                if ((prevX === currX && prevY == currY -1 && nextX === currX +1 && nextY === currY) 
-                    || (nextX === currX && nextY == currY -1 && prevX === currX +1 && prevY === currY)){
-                    direction = "North East"
-                }
-                else if ()
-                else if ((nextX > currX && nextY > currY) || (nextX < currX && nextY < currY)){
-                    direction = "Diagonal Left"
-                } 
-                else if ((nextX > currX && nextY < currY) || (nextX < currX && nextY > currY)){
-                    direction = "Diagonal Right"
+        for (let i = 1; i < route.length; i++) {
+            const [x1, y1] = route[i - 1].split(",").map(Number)
+            const [x2, y2] = route[i].split(",").map(Number)
+
+            if (x1 !== x2 && y1 !== y2) {
+                const mid = `${x2},${y1}`
+                if (!visited.has(mid)) {
+                    result.push(mid)
+                    visited.add(mid)
                 }
             }
-            route[i] = `${currX},${currY},${direction}`
+
+            const end = `${x2},${y2}`
+            if (!visited.has(end)) {
+                result.push(end)
+                visited.add(end)
+            }
         }
-        return route
+
+        return result
     }
+
+
+    addLinkDirection(route) {
+        const directions = new Map();
+
+        for (let i = 0; i < route.length; i++) {
+            const [cx, cy] = route[i].split(",").map(Number);
+            let dir = null;
+
+            if (i === 0) {
+                // First cell: look at next
+                const [nx, ny] = route[i + 1].split(",").map(Number);
+                if (nx === cx) dir = "Horizontal";
+                else dir = "Vertical";
+            } else if (i === route.length - 1) {
+                // Last cell: look at previous
+                const [px, py] = route[i - 1].split(",").map(Number);
+                if (px === cx) dir = "Horizontal";
+                else dir = "Vertical";
+            } else {
+                // Middle cell: look at previous and next
+                const [px, py] = route[i - 1].split(",").map(Number);
+                const [nx, ny] = route[i + 1].split(",").map(Number);
+
+                const dxPrev = cx - px;
+                const dyPrev = cy - py;
+                const dxNext = nx - cx;
+                const dyNext = ny - cy;
+
+                // Straight line
+                if ((dxPrev === 0 && dxNext === 0) || (dyPrev === 0 && dyNext === 0)) {
+                    dir = dxPrev === 0 ? "Horizontal" : "Vertical";
+                } else {
+                    // Determine corner type
+                    if ((dxPrev === 1 && dyNext === 1) || (dyPrev === 1 && dxNext === 1)) dir = "CornerSE";
+                    else if ((dxPrev === 1 && dyNext === -1) || (dyPrev === -1 && dxNext === 1)) dir = "CornerNE";
+                    else if ((dxPrev === -1 && dyNext === 1) || (dyPrev === 1 && dxNext === -1)) dir = "CornerSW";
+                    else if ((dxPrev === -1 && dyNext === -1) || (dyPrev === -1 && dxNext === -1)) dir = "CornerNW";
+                }
+            }
+
+            directions.set(`${cx},${cy}`, dir);
+        }
+
+        return directions;
+    }
+
+
+
 
     calcLinks(){
         let results = this.findDisconnectedTerritories()
@@ -594,7 +653,7 @@ attack(player, territory, selectedTerritory ){
             for (const link of links) {
                 const route = this.linkRouteCalc(link)
                 if (route) {
-                    routes.push(this.addLinkDirection(route));
+                    routes.push(this.orthogonalizePath(route));
                 }
             }
             console.log("Routes",routes)
@@ -603,32 +662,33 @@ attack(player, territory, selectedTerritory ){
         return links
     }
     
-    createLinks(){
-        let routes = this.calcLinks()
-        let positionRoutes = []
-        for (const route of routes){
-            let linkNum = 0;
-            const len = route.length
-            let startEnd = []
-            for (const link of route){
-                const [lX,lY, direction] = link.split(",")
-                if (linkNum == 0){
-                    startEnd.push(`${lX},${lY}`)
+    createLinks() {
+        const routes = this.calcLinks()
+        const positionRoutes = []
+
+        for (const route of routes) {
+            const linkDirections = this.addLinkDirection(route)
+
+            for (const cell of route) {
+                const [x, y] = cell.split(",").map(Number)
+                const terr = this.findTerritory(x, y)
+
+                if (terr && terr.owner === null) {
+                    terr.isLink = true
+                    terr.linkDirection = linkDirections.get(cell) || null
                 }
-                else if(linkNum == len -1){
-                    startEnd.push(`${lX},${lY}`)
-                }
-                const currTerritory = this.findTerritory(Number(lX), Number(lY))
-                if (currTerritory && currTerritory.owner == null){
-                    currTerritory.isLink = true
-                    currTerritory.linkDirection = direction
-                }
-                linkNum +=1
             }
-            positionRoutes.push(startEnd)
+
+            const start = route[0]
+            const end = route[route.length - 1]
+            positionRoutes.push([start, end])
         }
-        linkRoutes = positionRoutes;
+
+        linkRoutes = positionRoutes
     }
+
+    
+    
 
     createTerritories(){
         this.territories = []

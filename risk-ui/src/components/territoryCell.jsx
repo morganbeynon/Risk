@@ -3,6 +3,11 @@ import horizontal from "../images/horizontal.png";
 import vertical from "../images/vertical.png";
 import diagonalLeft from "../images/leftDiagonal.png";
 import diagonalRight from "../images/rightDiagonal.png";
+import northEast from "../images/northEast.png";
+import northWest from "../images/northWest.png";
+import southEast from "../images/southEast.png";
+import southWest from "../images/southWest.png";
+
 
 export default function TerritoryCell({
   colour,
@@ -16,12 +21,27 @@ export default function TerritoryCell({
 
   if (direction === "Vertical") {
     photoD = vertical;
-  } else if (direction === "Horizontal") {
+  } 
+  else if (direction === "Horizontal") {
     photoD = horizontal;
-  } else if (direction === "Diagonal Left") {
+  } 
+  else if (direction === "Diagonal Left") {
     photoD = diagonalLeft;
-  } else if (direction === "Diagonal Right") {
+  } 
+  else if (direction === "Diagonal Right") {
     photoD = diagonalRight;
+  }
+  else if (direction === "CornerNE") {
+    photoD = northEast;
+  }
+  else if (direction === "CornerNW") {
+    photoD = northWest;
+  }
+  else if (direction === "CornerSE") {
+    photoD = southEast;
+  }
+  else if (direction === "CornerSW") {
+    photoD = southWest;
   }
 
   return (
