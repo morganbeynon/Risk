@@ -595,32 +595,53 @@ attack(player, territory, selectedTerritory ){
             if (i === 0) {
                 // First cell: look at next
                 const [nx, ny] = route[i + 1].split(",").map(Number);
-                if (nx === cx) dir = "Horizontal";
-                else dir = "Vertical";
+                if (nx !== cx) dir = "Vertical";
+                else dir = "Horizontal";
             } else if (i === route.length - 1) {
                 // Last cell: look at previous
                 const [px, py] = route[i - 1].split(",").map(Number);
-                if (px === cx) dir = "Horizontal";
-                else dir = "Vertical";
+                if (py === cy){
+                    dir = "Vertical";
+                }
+                else
+                    { 
+                        dir = "Horizontal";
+                    }
             } else {
                 // Middle cell: look at previous and next
                 const [px, py] = route[i - 1].split(",").map(Number);
                 const [nx, ny] = route[i + 1].split(",").map(Number);
 
-                const dxPrev = cx - px;
-                const dyPrev = cy - py;
+                const dxPrev = px-cx;
+                const dyPrev = py-cy;
+                const inOrient = this.cornerOrientation(dxPrev, dyPrev)
+
                 const dxNext = nx - cx;
                 const dyNext = ny - cy;
+                const outOrient = this.cornerOrientation(dxNext, dyNext)
 
                 // Straight line
-                if ((dxPrev === 0 && dxNext === 0) || (dyPrev === 0 && dyNext === 0)) {
-                    dir = dxPrev === 0 ? "Horizontal" : "Vertical";
+                if ((inOrient == "N" && outOrient == "S" || inOrient == "S" && outOrient == "N") || (inOrient == "W" && outOrient == "E" || inOrient == "E" && outOrient == "W")) {
+                    if(inOrient == "N" || inOrient == "S"){
+                        dir = "Vertical"
+                    }
+                    else{
+                        dir = "Horizontal"
+                    }
                 } else {
                     // Determine corner type
-                    if ((dxPrev === 1 && dyNext === 1) || (dyPrev === 1 && dxNext === 1)) dir = "CornerSE";
-                    else if ((dxPrev === 1 && dyNext === -1) || (dyPrev === -1 && dxNext === 1)) dir = "CornerNE";
-                    else if ((dxPrev === -1 && dyNext === 1) || (dyPrev === 1 && dxNext === -1)) dir = "CornerSW";
-                    else if ((dxPrev === -1 && dyNext === -1) || (dyPrev === -1 && dxNext === -1)) dir = "CornerNW";
+                    if ((inOrient == "S" && outOrient == "E") || (inOrient == "E" && outOrient == "S")){
+                        dir = "CornerSE";
+                    }
+                    else if ((inOrient == "N" && outOrient == "E") || (inOrient == "E" && outOrient == "N")){
+                        dir = "CornerNE";
+                    }
+                    else if ((inOrient == "S" && outOrient == "W") || (inOrient == "W" && outOrient == "S")){
+                        dir = "CornerSW";
+                    }
+                    else if ((inOrient == "N" && outOrient == "W") || (inOrient == "W" && outOrient == "N")){
+                        dir = "CornerNW";
+                    }
                 }
             }
 
@@ -630,6 +651,23 @@ attack(player, territory, selectedTerritory ){
         return directions;
     }
 
+    cornerOrientation(dx, dy) {
+        if (dx === -1 && dy === 0) {
+            return "N"; // up
+        } 
+        else if (dx === 1 && dy === 0) {
+            return "S"; // down
+        } 
+        else if (dx === 0 && dy === 1) {
+            return "E"; // right
+        } 
+        else if (dx === 0 && dy === -1) {
+            return "W"; // left
+        } 
+        else {
+            return null;
+        }
+    }
 
 
 
