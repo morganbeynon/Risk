@@ -53,6 +53,7 @@ export default function GameScreen() {
             >
                 <div style={{ marginBottom: "12px" }}>
                     <Components.TurnBar colour={engine.getCurrentPlayer().colour} />
+                    <Components.Clock/>
                 </div>
                 <div
                 style={{
