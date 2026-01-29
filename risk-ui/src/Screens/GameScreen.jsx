@@ -51,10 +51,24 @@ export default function GameScreen() {
                     alignItems: "center",
                 }}
             >
-                <div style={{ marginBottom: "12px" }}>
+                <div
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "12px",
+                        marginBottom: "12px",
+                    }}
+                    >
                     <Components.TurnBar colour={engine.getCurrentPlayer().colour} />
-                    <Components.Clock/>
+                    <Components.Clock 
+                        key = {engine.turn}
+                        alarm ={() => {
+                        engine.nextTurn();  
+                        setDeployed(false);       
+                        setTick(t => t + 1);
+                    }} />
                 </div>
+
                 <div
                 style={{
                     display: "flex",
