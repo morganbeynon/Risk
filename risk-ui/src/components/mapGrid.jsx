@@ -1,199 +1,217 @@
 import React from 'react'
-import { GameEngine, Player, Territory,Continent } from 'risk-game';
+import { GameEngine } from 'risk-game';
 import TerritoryCell from './territoryCell';
 import TroopInput from './troopInput';
 
-
-
-export default function MapGrid({phase, update, render}){
+export default function MapGrid({ phase, update, render }) {
     const rows = 10;
     const cols = 10;
-    const cellSize = 60;
     const engine = window.GameEngine;
     const player = engine.getCurrentPlayer();
+
+    const [sourceTerritory, setSourceTerritory] = React.useState(null);
     const [sourceTerritories, setSourceTerritories] = React.useState([]);
     const [mapData, setMapData] = React.useState(engine.territories);
     const [reinforced, setReinforced] = React.useState(false);
     const [isVisible, setIsVisible] = React.useState(false);
     const [currentTerritory, setCurrTerritory] = React.useState(null);
-    const [validAmount, setValidAmount] = React.useState(0)
-    const [showOverlay, setShowOverlay] = React.useState(false);
-    const [pendingOverlay, setPendingOverlay] = React.useState(false);
+    const [validAmount, setValidAmount] = React.useState(0);
+    const [attackSource, setAttackSource] = React.useState(null);
 
-    React.useEffect(() => {
-        if (pendingOverlay) {
-            setIsVisible(true);
-            setPendingOverlay(false);
-        }
-    }, [mapData, pendingOverlay]);
 
     if (!engine) return <div>Loading map...</div>;
-    
-    
-    return(
+
+    return (
         <div
-            style = {{
+            style={{
                 display: "grid",
                 gridTemplateColumns: `repeat(${cols}, 45px)`,
                 gap: "0px",
             }}
         >
-            {Array.from({ length: rows * cols}).map((_, i) => {
+            {Array.from({ length: rows * cols }).map((_, i) => {
                 const x = Math.floor(i / cols);
                 const y = i % cols;
-                const currTerritory = engine.findTerritory(x,y);
-                let troopCount = null
-                let cellColour = "grey"
-                let shape = ""
-                if (currTerritory){
-                    if (currTerritory.owner){
-                        const cellPlayer = engine.getTerritoryPlayer(currTerritory.owner)
-                        cellColour = cellPlayer.colour || "grey"
-                        troopCount = currTerritory.troopCount
-                    }
-                    else{
-                        cellColour = "blue"
+                const currTerritory = engine.findTerritory(x, y);
+
+                let troopCount = null;
+                let cellColour = "grey";
+
+                if (currTerritory) {
+                    if (currTerritory.owner) {
+                        const cellPlayer = engine.getTerritoryPlayer(currTerritory.owner);
+                        cellColour = cellPlayer.colour || "grey";
+                        troopCount = currTerritory.troopCount;
+                    } else {
+                        cellColour = "blue";
                     }
                 }
-                return(
+
+                return (
                     <TerritoryCell
-                        key = {`${x},${y}`}
-                        id = {player.id}
-                        colour = {cellColour}
+                        key={`${x},${y}`}
+                        id={player.id}
+                        colour={cellColour}
                         troopCount={troopCount}
-                        direction = {currTerritory.linkDirection}
+                        direction={currTerritory.linkDirection}
                         isLink={currTerritory.isLink}
-                        onClick = {() =>{
-                            if(phase == "Deploy"){
-                                if(player.deployableTroops > 0){
-                                    setValidAmount(player.deployableTroops)
-                                    if (currTerritory.owner == player.id){
-                                        setIsVisible(true)
-                                        setReinforced(false)
-                                        setCurrTerritory(currTerritory)                    
+                        onClick={() => {
+
+                            if (phase === "Deploy") {
+                                if (player.deployableTroops <= 0) {
+                                    alert("You do not have any more troops to deploy");
+                                    return;
+                                }
+
+                                if (currTerritory.owner !== player.id) {
+                                    alert("You can only deploy to owned territories");
+                                    return;
+                                }
+
+                                setValidAmount(player.deployableTroops);
+                                setCurrTerritory(currTerritory);
+                                setIsVisible(true);
+                                return;
+                            }
+
+                            if (phase === "Attack") {
+
+                                if (!sourceTerritory) {
+                                    if (currTerritory.owner === player.id) {
+                                        setSourceTerritory(currTerritory);
+                                    } else {
+                                        alert("Select an owned territory to attack from");
                                     }
-                                    else{
-                                        alert("You can only deploy to owned territories")
+                                    return;
+                                }
+
+                                if (currTerritory.owner === player.id) {
+                                    alert("You cannot attack your own territory");
+                                    setSourceTerritory(null);
+                                    return;
+                                }
+
+                                const result = engine.attack(
+                                    player,
+                                    sourceTerritory,
+                                    currTerritory
+                                );
+
+                                setMapData([...engine.territories]);
+
+                                if (result?.result) {
+                                    if (result.troops > 0) {
+                                        setValidAmount(result.troops);
+                                        setCurrTerritory(currTerritory);
+                                        setAttackSource(sourceTerritory);
+                                        setIsVisible(true);
                                     }
                                 }
-                                else{
-                                    alert("You do not have any more troops to deploy")
+
+                                setSourceTerritory(null);
+                                return;
+                            }
+
+                            if (phase === "Reinforce") {
+                                if (reinforced) {
+                                    alert("You can only reinforce once a turn");
+                                    return;
+                                }
+
+                                if (sourceTerritories.length === 0) {
+                                    if (currTerritory.owner === player.id) {
+                                        setSourceTerritories([currTerritory]);
+                                    } else {
+                                        alert("Select an owned territory to reinforce from");
+                                    }
+                                    return;
+                                }
+
+                                if (sourceTerritories.length === 1) {
+                                    if (currTerritory.owner !== player.id) {
+                                        alert("You cannot reinforce to enemy territory");
+                                        setSourceTerritories([]);
+                                        return;
+                                    }
+
+                                    const neighbours = Array.from(
+                                        engine.getConnectingTerritories(
+                                            sourceTerritories[0].row,
+                                            sourceTerritories[0].col
+                                        )
+                                    );
+
+                                    if (!neighbours.includes(currTerritory.id)) {
+                                        alert("Must reinforce to a connected territory");
+                                        setSourceTerritories([]);
+                                        return;
+                                    }
+
+                                    const max = sourceTerritories[0].troopCount - 1;
+                                    if (max <= 0) {
+                                        alert("You must leave at least one troop behind");
+                                        return;
+                                    }
+
+                                    setValidAmount(max);
+                                    setCurrTerritory(currTerritory);
+                                    setIsVisible(true);
                                 }
                             }
-                            else if (phase == "Attack"){
-                                    if (sourceTerritories.length == 0){
-                                        if (currTerritory.owner == player.id){
-                                            setSourceTerritories([currTerritory])
-                                            //setSelectedCell(`${x},${y}`)
-                                        }
-                                        else{
-                                            alert("Select an owned territory to attack from")
-                                            setSourceTerritories([]);
-                                        }
-                                    }
-                                    else if(sourceTerritories.length == 1){
-                                        if (currTerritory.owner == player.id){
-                                            alert("You cannot attack your own territory")
-                                            setSourceTerritories([])
-                                        }
-                                        else{     
-                                            let result = engine.attack(player, sourceTerritories[0], currTerritory);
-                                            if (result.result){
-                                                setValidAmount(result.troops)
-                                                setSourceTerritories([sourceTerritories[0]]);
-                                                setCurrTerritory(currTerritory);
-                                                render() 
-                                                setPendingOverlay(true); 
-                                            }
-                                        }
-                                        
-                                    }
-                                    return;   
-                            }
-                            else if (phase == "Reinforce"){
-                                if (reinforced == true){
-                                    alert("You can only reinforce once a turn")
-                                }
-                                else{                                
-                                    if (sourceTerritories.length == 0){
-                                            if (currTerritory.owner == player.id){
-                                                setSourceTerritories([currTerritory])
-                                            }
-                                            else{
-                                                alert("Select an owned territory to reinforce from")
-                                            }
-                                        }
-                                        else if(sourceTerritories.length == 1){
-                                            if (currTerritory.owner != player.id){
-                                                alert("You cannot reinforce to enemy territory")
-                                                setSourceTerritories([])
-                                            }
-                                            else{    
-                                                const connectingNeighbours = Array.from(engine.getConnectingTerritories(sourceTerritories[0].row, sourceTerritories[0].col))
-                                                if (!connectingNeighbours.includes(currTerritory.id)) {
-                                                    alert("Must reinforce to a connected territory")
-                                                    setSourceTerritories([])
-                                                    return;
-                                                }  
-                                                setValidAmount(sourceTerritories[0].troopCount-1)
-                                                if (validAmount== 0){
-                                                    alert("You must have more than 1 troop in the source territory to reinforce")
-                                                    return
-                                                }
-                                                setCurrTerritory(currTerritory)
-                                                setMapData([...engine.territories]);
-                                                setIsVisible(true);
-                                            }
-                                            
-                                        }
-                                        return;  
-                                }
-                            }
-                            
-                           
                         }}
                     />
                 );
             })}
-            <TroopInput colour={engine.getCurrentPlayer().colour} validAmount={validAmount}visible={isVisible} 
-            onConfirm ={(amount) => {
-                if (phase == "Deploy"){
-                    if (currentTerritory) {
+
+            <TroopInput
+                colour={player.colour}
+                validAmount={validAmount}
+                visible={isVisible}
+                onConfirm={(amount) => {
+
+
+                    if (phase === "Deploy" && currentTerritory) {
                         engine.deploy(player, currentTerritory, amount);
                         setMapData([...engine.territories]);
                         setIsVisible(false);
                         setCurrTerritory(null);
-                        render()
-                        if (player.deployableTroops === 0){
-                            update(true);
-                        }
+                        render();
+                        if (player.deployableTroops === 0) update(true);
                     }
-                }
-                else if (phase == "Reinforce"){
-                    if (sourceTerritories[0] && currentTerritory) {
-                        engine.fortify(player, sourceTerritories[0], currentTerritory, amount);
+
+                    else if (phase === "Reinforce" && sourceTerritories[0] && currentTerritory) {
+                        engine.fortify(
+                            player,
+                            sourceTerritories[0],
+                            currentTerritory,
+                            amount
+                        );
                         setMapData([...engine.territories]);
                         setSourceTerritories([]);
                         setCurrTerritory(null);
-                        setIsVisible(false); 
+                        setIsVisible(false);
                         setReinforced(true);
                         update(true);
                     }
+
+                    else if (phase === "Attack") {
+                        if (!attackSource || !currentTerritory){
+                            return;
+                        } 
+                        attackSource.troopCount -= amount;
+                        currentTerritory.troopCount += amount;
+
+                        setMapData([...engine.territories]);
+                        setAttackSource(null);
+                        setCurrTerritory(null);
+                        setIsVisible(false);
+                        update(true);
+                    }
+
+                    }
                 }
-                else {
-                    currentTerritory.owner = sourceTerritories[0].owner
-                    currentTerritory.troopCount = amount 
-                    let left = validAmount - amount 
-                    sourceTerritories[0].troopCount = left + 1
-                    setMapData([...engine.territories])
-                    setSourceTerritories([])
-                    setIsVisible(false)
-                    update(true)
-                }
-                
-        }}/>
+            
+            />
         </div>
-        
     );
 }
-

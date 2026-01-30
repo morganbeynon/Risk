@@ -137,81 +137,70 @@ class GameEngine{
         }
     }
 
-attack(player, territory, selectedTerritory ){
-     if(this.checkAdjacency(territory,selectedTerritory, "Attack")){ 
-        if (player.id == selectedTerritory.id){
-            return
+   attack(player, territory, selectedTerritory) {
+        if (!territory || !selectedTerritory){
+             return;
         }
-        let ADice = territory.troopCount - 1 
-        let DDice = selectedTerritory.troopCount 
-        let AResults = [] 
-        let DResults = [] 
-        let cardTypes = ['Soldier', 'Cavalry', 'Tank'] 
-        while(ADice > 0 && DDice > 0){ 
-            //Generates Attacking dice results for 1 round 
-            if(ADice > 2){ 
-                AResults = [(Math.floor(Math.random() * 6) +1),(Math.floor(Math.random() * 6) +1),(Math.floor(Math.random() * 6) +1)] 
-            } 
-            else if(ADice == 2){ 
-                AResults = [(Math.floor(Math.random() * 6) +1),(Math.floor(Math.random() * 6) +1)] 
-            } 
-            else{ 
-                AResults = [(Math.floor(Math.random() * 6) +1)] } 
-                //Generates Defending dice results for 1 round 
-            if(DDice > 1){ 
-                DResults = [(Math.floor(Math.random() * 6) +1),(Math.floor(Math.random() * 6) +1)] 
-            } 
-            else{
-                DResults = [(Math.floor(Math.random() * 6) +1)] 
+
+        if (territory.id === selectedTerritory.id || territory.owner === selectedTerritory.owner) {
+            alert("You cannot attack your own territory");
+            return;
+        }
+
+        // Must be adjacent
+        if (!this.checkAdjacency(territory, selectedTerritory, "Attack")) {
+            alert("You must attack an adjacent enemy territory");
+            return;
+        }
+
+        // Must have >1 troop
+        if (territory.troopCount <= 1){
+            return;
+        } 
+
+
+        let ADice = territory.troopCount - 1;
+        let DDice = selectedTerritory.troopCount;
+
+        let AResults = [];
+        let DResults = [];
+
+        while (ADice > 0 && DDice > 0) {
+            AResults = Array(Math.min(3, ADice))
+                .fill(0)
+                .map(() => Math.floor(Math.random() * 6) + 1);
+
+            DResults = Array(Math.min(2, DDice))
+                .fill(0)
+                .map(() => Math.floor(Math.random() * 6) + 1);
+
+            AResults.sort((a, b) => b - a);
+            DResults.sort((a, b) => b - a);
+
+            const rounds = Math.min(AResults.length, DResults.length);
+            for (let i = 0; i < rounds; i++) {
+                if (AResults[i] > DResults[i]) DDice--;
+                else ADice--;
             }
-            //Sorts result arrays numerically 
-            AResults.sort((a, b) => b - a) 
-            DResults.sort((a, b) => b - a) 
-            //Compare highest against highest and second highest against second highest values in both results array. Whoever is lower, loses a troop 
-            if (DResults.length > 1){ 
-                if(AResults[0] > DResults[0]){ 
-                    DDice -= 1
-                } 
-                else{ 
-                    ADice -= 1 
-                } 
-                if(AResults[1] > DResults[1]){
-                    DDice -= 1 
-                }
-                else{ 
-                    ADice -= 1 
-                } 
-            } 
-            else{ 
-                if(AResults[0] > DResults[0]){
-                    DDice -= 1 
-                } 
-                else{ 
-                    ADice -= 1 
-                } 
-            } 
-        } 
-        if (DDice < 1){ 
-            const currPlayer = this.getCurrentPlayer()
-            if (!currPlayer.recievedCard){
-                const newCard = Card.newCard(this);
-                currPlayer.cards.push(newCard);
-            }
-            this.getCurrentPlayer().recievedCard = true
-            const result = true 
-            const troops = ADice 
-            return {result, troops} 
-        } 
-        else{ 
-            territory.troopCount = 1 
-            selectedTerritory.troopCount = DDice 
-            const result = false 
-            const troops = 0 
-            return {result, troops} 
-        } 
-    } 
-    else(alert("You must attack an adjacent enemy territory"))
-}
+        }
+
+        territory.troopCount = ADice + 1;
+        selectedTerritory.troopCount = DDice;
+
+        if (DDice < 1) {
+            selectedTerritory.owner = territory.owner;
+
+            selectedTerritory.troopCount = 1;
+            territory.troopCount = ADice;
+
+            return {
+                result: true,
+                troops: Math.max(0, ADice - 1)
+            };
+        }
+
+    }
+
     fortify(player, territory, selectedTerritory, amount){
         if(this.checkAdjacency(territory,selectedTerritory, "Reinforce")){ 
             if(amount < territory.troopCount){
