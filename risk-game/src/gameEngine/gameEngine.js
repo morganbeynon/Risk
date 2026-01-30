@@ -447,9 +447,19 @@ attack(player, territory, selectedTerritory ){
                 }
                 for (const adj of terr.adjacent){
                     const adjTerr = this.territories.find(t => t.id === adj)
-                    if (adjTerr &&  adjTerr.owner !== null && !visited.has(adj)){
+                    if (
+                        adjTerr &&
+                        (adjTerr.owner !== null || adjTerr.isLink === true) &&
+                        !visited.has(adj)
+                    ){
                         stack.push(adj)
                     }
+                }
+
+
+                for (const [a, b] of linkRoutes){
+                    if (a === id && !visited.has(b)) stack.push(b)
+                    if (b === id && !visited.has(a)) stack.push(a)
                 }
             }
         }
@@ -461,7 +471,7 @@ attack(player, territory, selectedTerritory ){
         const visitedTotal = new Set();
 
         for (const terr of this.territories){
-            if (terr.owner !== null){
+            if (terr.owner !== null || terr.isLink === true){
             const id = terr.id
             if (!visitedTotal.has(id)){
                 const group = this.findGroup(id)
@@ -476,7 +486,7 @@ attack(player, territory, selectedTerritory ){
     return groups
     }
 
-    findDisconnectedTerritories(){
+    findDisconnectedTerritories(i){
         let groups = this.findAllGroups()
         let disconnected = []
         let isDisconnected = false
@@ -484,7 +494,7 @@ attack(player, territory, selectedTerritory ){
             disconnected = groups
             isDisconnected = true
         }
-        console.log("Disconnected", disconnected)
+        console.log(i, "Disconnected", disconnected)
         return {isDisconnected, disconnected}
     }
     
@@ -568,6 +578,16 @@ attack(player, territory, selectedTerritory ){
 
             if (x1 !== x2 && y1 !== y2) {
                 const mid = `${x2},${y1}`
+                const midTerr = this.territories.find(t => t.id === mid)
+                if (
+                    midTerr &&
+                    midTerr.owner === null &&
+                    midTerr.isLink === false
+                ) {
+                    result.push(mid)
+                } else {
+                    return null 
+                }
                 if (!visited.has(mid)) {
                     result.push(mid)
                     visited.add(mid)
@@ -671,61 +691,98 @@ attack(player, territory, selectedTerritory ){
 
 
 
-    calcLinks(){
-        let results = this.findDisconnectedTerritories()
-        const {isDisconnected, disconnected} = results
-        const links = []
-        if(isDisconnected){
-            const linkNum = 1
-            //const linkNum = Math.max(1, Math.round(disconnected.length * Math.random() * 2))
-            const numGroups = disconnected.length
-            const linkPerGroup = Math.max(1,Math.floor(linkNum/numGroups))
-            
-            for (let i = 0; i < numGroups - 1; i++) {
-                const pairs = this.calcDistance(1,disconnected[i],disconnected[i + 1])
-                if (pairs[0]) {
-                    links.push(pairs[0])
+    calcLinks(disconnected) {
+        ///CHECK THIS FIRST
+        const links = [];
+        if (disconnected.length <= 1) return links;
+
+        const remaining = [...disconnected];
+        const connected = [remaining.shift()]; 
+
+        while (remaining.length) {
+            let minDist = Infinity;
+            let minPair = null;
+            let removeIdx = -1;
+
+            for (let i = 0; i < connected.length; i++) {
+                for (let j = 0; j < remaining.length; j++) {
+                    const pair = this.calcDistance(1, connected[i], remaining[j])[0];
+                    if (!pair) continue;
+                    const terr1 = this.territories.find(t => t.id === pair[0]);
+                    const terr2 = this.territories.find(t => t.id === pair[1]);
+                    const dist = this.manhattanDistance(terr1, terr2);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        minPair = pair;
+                        removeIdx = j;
+                    }
                 }
             }
-            const routes = []
-            for (const link of links) {
-                const route = this.linkRouteCalc(link)
-                if (route) {
-                    routes.push(this.orthogonalizePath(route));
-                }
+
+            if (minPair) {
+                links.push(minPair);
+                connected.push(remaining.splice(removeIdx, 1)[0]);
+            } else {
+                console.log("Failed to link all groups");
+                break;
             }
-            console.log("Routes",routes)
-            return routes   
         }
-        return links
+
+        return links;
     }
-    
-    createLinks() {
-        const routes = this.calcLinks()
-        const positionRoutes = []
 
-        for (const route of routes) {
-            const linkDirections = this.addLinkDirection(route)
+    resetLinks(){
+        linkRoutes = []
+        for(const terr of this.territories){
+            terr.isLink = false
+            terr.linkDirection = null
+        }
+    }
 
-            for (const cell of route) {
-                const [x, y] = cell.split(",").map(Number)
-                const terr = this.findTerritory(x, y)
+    createLinks(disconnected) {
+        linkRoutes = [];
+
+        const pairs = this.calcLinks(disconnected);
+        const positionRoutes = [];
+
+        for (const pair of pairs) {
+            let route =
+                this.linkRouteCalc(pair) ||
+                this.linkRouteCalc([pair[1], pair[0]]);
+
+            if (!route) {
+                console.warn("No route found for", pair);
+                continue;
+            }
+
+            const orthRoute = this.orthogonalizePath(route) || route;
+            const linkDirections = this.addLinkDirection(orthRoute);
+
+            for (const cell of orthRoute) {
+                const [x, y] = cell.split(",").map(Number);
+                const terr = this.findTerritory(x, y);
 
                 if (terr && terr.owner === null) {
-                    terr.isLink = true
-                    terr.linkDirection = linkDirections.get(cell) || null
+                    terr.isLink = true;
+                    terr.linkDirection = linkDirections.get(cell);
                 }
             }
 
-            const start = route[0]
-            const end = route[route.length - 1]
-            positionRoutes.push([start, end])
+            positionRoutes.push([orthRoute[0], orthRoute.at(-1)]);
         }
 
-        linkRoutes = positionRoutes
+        linkRoutes = positionRoutes;
     }
 
-    
+
+    attemptLinks(){
+        this.resetLinks()
+        const { disconnected } = this.findDisconnectedTerritories()
+        if (disconnected.length <= 1) return true
+        this.createLinks(disconnected)
+        const { isDisconnected } = this.findDisconnectedTerritories()
+        return !isDisconnected
+    }
     
 
     createTerritories(){
@@ -782,9 +839,13 @@ attack(player, territory, selectedTerritory ){
     
     initialiseGame(){
         console.log("initialiseGame CALLED");
+        if (this._initialised == true){
+            return
+        }
+        this._initialised = true
         this.assignColours()
         this.assignTerritories()
-        this.createLinks()
+        this.attemptLinks()
         
 
     }
