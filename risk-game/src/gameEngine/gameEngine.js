@@ -193,6 +193,13 @@ class GameEngine{
             selectedTerritory.troopCount = 1;
             territory.troopCount = ADice;
 
+            if (!player.recievedCard) {
+                const newCard = Card.newCard(this);
+                player.cards.push(newCard);
+                player.recievedCard = true;
+                console.log("Card added:", newCard);
+            }
+
             return {
                 result: true,
                 troops: Math.max(0, ADice - 1)
