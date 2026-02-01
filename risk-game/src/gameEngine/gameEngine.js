@@ -78,15 +78,6 @@ class Card{
     }
 }
 
-export const gameState = {
-    players : [],
-    territories : [],
-    continents : [],
-    turn : 0,
-    phase : 'Deploy',
-
-};
-
 class GameEngine{
     constructor(players, territories, continent, turn, phaseNumber ){
         this.players = players
@@ -100,6 +91,9 @@ class GameEngine{
 
     nextTurn(){
         const playerCount = this.players.length;
+        if (this.turn === playerCount - 1) {
+            this.roundCount += 1;
+        }
         let next = (this.turn + 1) % playerCount;
         let checked = 0;
         while (this.players[next].territories.length === 0){
@@ -398,6 +392,17 @@ class GameEngine{
             checkOut = true
         }
         return {checkOut, cardValues, removeCards}
+    }
+
+    redeemCards(player){
+        const {checkOut, cardValues, removeCards} = this.checkCards(player);
+        if (checkOut === false){
+            return false;
+        }
+        const removeIds = new Set(removeCards.map(c => c.id));
+        player.cards = player.cards.filter(c => !removeIds.has(c.id));
+        player.deployableTroops += cardValues;
+        return true;
     }
     
     getNeighbours(x,y){

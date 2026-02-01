@@ -21,7 +21,7 @@ export default function cardPopUp({onConfirm, colour, visible, value, checkout, 
                 console.log("returned")
                 return;
             } 
-            player.deployableTroops += troops
+            engine.redeemCards(player)
             onConfirm();
 
         }
