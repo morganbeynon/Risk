@@ -7,6 +7,7 @@ export default function GameScreen() {
     const [engine, setEngine] = useState(null);
     const [tick, setTick] = useState(0);
     const [deployed, setDeployed] = useState(false);
+    const [winner, setWinner] = useState(null)
 
 
     //TESTING MAP GRID DELETE AFTER
@@ -38,6 +39,12 @@ export default function GameScreen() {
         
     }, []);
 
+    useEffect(() => {
+        if (engine && engine.winner) {
+            setWinner(engine.winner);
+        }
+    }, [tick, engine]);
+
     if (!engine) return <div>Loading...</div>;
     return(
             <div
@@ -63,6 +70,9 @@ export default function GameScreen() {
                     <Components.Clock 
                         key = {engine.turn}
                         alarm ={() => {
+                        if (winner){
+                            return
+                        }
                         engine.nextTurn();  
                         setDeployed(false);       
                         setTick(t => t + 1);
@@ -108,6 +118,9 @@ export default function GameScreen() {
                     />
                 </div>
                 <Components.Button colour={engine.getCurrentPlayer().colour} onClick={() =>{
+                    if (winner){
+                        return
+                    }
                     if (engine.getPhase() == "Deploy"){
                         if(deployed){
                             engine.nextPhase();
@@ -128,6 +141,13 @@ export default function GameScreen() {
                         setTick(t => t + 1);
                 }
                }} />
+               <Components.WinPopUp
+                    visible={!!winner}
+                    winner={winner}
+                    onConfirm={() => {
+                        window.location.reload();
+                    }}
+                />
             </div>
     );
 }

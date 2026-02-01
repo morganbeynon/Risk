@@ -2,6 +2,7 @@ const Phases = ['Deploy', 'Attack', 'Reinforce']
 const colours = ['red', 'green', 'yellow', 'pink', 'purple', 'orange']
 let linkRoutes = []
 
+
 class Player{
     constructor(id, territories = [], totalTroops, turnNumber, continents, placedTroops, deployableTroops, cards = [], colour, recievedCard){
         this.id = id
@@ -93,16 +94,54 @@ class GameEngine{
         this.continents = continent
         this.turn = 0;
         this.phaseNumber = 0;
+        this.roundCount = 0;
+        this.winner = null
     }
 
     nextTurn(){
-        this.turn = (this.turn + 1) % this.players.length
-        this.getCurrentPlayer().recievedCard = false
-        this.phaseNumber = 0
-        let player = this.players[this.turn];
-        player.deployableTroops = this.reinforcementValue(player)
+        const playerCount = this.players.length;
+        let next = (this.turn + 1) % playerCount;
+        let checked = 0;
+        while (this.players[next].territories.length === 0){
+            next = (next + 1) % playerCount;
 
-        return this.turn
+            if (next === 0) {
+                this.roundCount += 1;
+            }
+            checked++
+            if (checked > playerCount){
+                return this.turn;
+            }
+        }
+
+        this.turn = next;
+
+        const player = this.players[this.turn];
+        player.recievedCard = false;
+        this.phaseNumber = 0;
+        player.deployableTroops = this.reinforcementValue(player);
+
+        return this.turn;
+    }
+
+    checkWinner(){
+        const owned = this.territories.filter(t => !t.isLink && t.owner !== null);
+        if (owned.length == 0){
+            return null
+        }
+
+        const owner = owned[0].owner;
+        if (owner === null){
+            return null;
+        }
+
+        for (const terr of owned){
+            if (terr.owner !== owner){
+                return null
+            }
+        }
+        const winner = this.players.find(p => p.id === owner);
+        return winner
     }
 
     getCurrentPlayer(){
@@ -188,7 +227,7 @@ class GameEngine{
         selectedTerritory.troopCount = DDice;
 
         if (DDice < 1) {
-            selectedTerritory.owner = territory.owner;
+            
 
             selectedTerritory.troopCount = 1;
             territory.troopCount = ADice;
@@ -200,6 +239,22 @@ class GameEngine{
                 console.log("Card added:", newCard);
             }
 
+            const oldOwnerId = selectedTerritory.owner;
+
+            selectedTerritory.owner = territory.owner;
+
+            const defender = this.players.find(p => p.id === oldOwnerId);
+            if (defender) {
+                defender.territories = defender.territories.filter(id => id !== selectedTerritory.id);
+            }
+
+            const attacker = this.players.find(p => p.id === territory.owner);
+            attacker.territories.push(selectedTerritory.id)
+
+            const winner = this.checkWinner();
+            if (winner != null){
+                this.winner = winner
+            }
             return {
                 result: true,
                 troops: Math.max(0, ADice - 1)
@@ -319,7 +374,7 @@ class GameEngine{
         else if (cavalryCount >= 3){
             for (let j = 0 ; j < player.cards.length; j++){
                 let innerCard = player.cards[j]
-                if (innerCard.type == "Calvary" && inCav < 3){
+                if (innerCard.type == "Cavalry" && inCav < 3){
                     inCav += 1
                     removeCards.push(innerCard)
                 }
@@ -352,7 +407,7 @@ class GameEngine{
         for (const [px, py] of directions){
             let rx = x + px
             let ry = y + py
-            if (rx < 10 && ry < 10 && rx >= 0 && ry >= 0){
+            if (rx < 6 && ry < 6 && rx >= 0 && ry >= 0){
                 neighbours.push(`${rx},${ry}`)
             }
         }
@@ -366,7 +421,7 @@ class GameEngine{
         for (const [px, py] of directions){
             let rx = x + px
             let ry = y + py
-            if (rx < 10 && ry < 10 && rx >= 0 && ry >= 0){
+            if (rx < 6 && ry < 6 && rx >= 0 && ry >= 0){
                 neighbours.push(`${rx},${ry}`)
             }
         }
@@ -783,8 +838,8 @@ class GameEngine{
 
     createTerritories(){
         this.territories = []
-        for (let row = 0; row < 10; row++){
-           for( let col = 0; col < 10; col++){
+        for (let row = 0; row < 6; row++){
+           for( let col = 0; col < 6; col++){
                 
                     const neighbours = this.getNeighbours(row,col)
                     const id = `${row},${col}`
@@ -820,17 +875,15 @@ class GameEngine{
         return continentValue
     }
     reinforcementValue(player){
-        let reTroopCount = 3
-        let terrLen = player.territories.length
-        if (terrLen > 6){
-            terrLen -= 6
-            reTroopCount = Math.floor(terrLen / 3)
+        if(this.roundCount == 0){
+            return 3;
         }
-        
-        //let continentBonus = this.continentValueCheck(player)
-        //reTroopCount += continentBonus
-
-        return reTroopCount
+        const terrCount = player.territories.length;
+        if (terrCount <= 3) {
+            return 3;
+        }
+        const terrTroops = Math.floor((terrCount - 3) / 4)
+        return (3 + 2 * terrTroops)
     }
     
     initialiseGame(){
@@ -856,7 +909,7 @@ class GameEngine{
     findTerritory = (x, y) => {
         return this.territories.find(t => t.row === x && t.col === y)
     }
-    getTerritoryPlayer = (id) => {
+    getPlayerByTerr = (id) => {
         return this.players.find(p => p.id == id)
     }
     //TO ADD

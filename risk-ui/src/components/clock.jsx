@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 export default function Clock({alarm}){
-    const [time, setTime] = useState(45);
+    const [time, setTime] = useState(20);
 
     useEffect(() => {
         if (time == 0){

@@ -4,8 +4,8 @@ import TerritoryCell from './territoryCell';
 import TroopInput from './troopInput';
 
 export default function MapGrid({ phase, update, render }) {
-    const rows = 10;
-    const cols = 10;
+    const rows = 6;
+    const cols = 6;
     const engine = window.GameEngine;
     const player = engine.getCurrentPlayer();
 
@@ -39,7 +39,7 @@ export default function MapGrid({ phase, update, render }) {
 
                 if (currTerritory) {
                     if (currTerritory.owner) {
-                        const cellPlayer = engine.getTerritoryPlayer(currTerritory.owner);
+                        const cellPlayer = engine.getPlayerByTerr(currTerritory.owner);
                         cellColour = cellPlayer.colour || "grey";
                         troopCount = currTerritory.troopCount;
                     } else {
@@ -58,6 +58,7 @@ export default function MapGrid({ phase, update, render }) {
                         onClick={() => {
 
                             if (phase === "Deploy") {
+                                setReinforced(false);
                                 if (player.deployableTroops <= 0) {
                                     alert("You do not have any more troops to deploy");
                                     return;
