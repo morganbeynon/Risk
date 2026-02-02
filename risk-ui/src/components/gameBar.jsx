@@ -19,7 +19,7 @@ export default function GameBar({ player, phase}) {
     } else {
         text = "Reinforce";
     }
-    const {checkOut, cardValues: value, removeCards } = engine.checkCards(player)
+    const {checkOut, cardValues: value, removeCards } = engine.applyAction("checkCards",{player: player})
 
     return (
         <div style={{ position: 'relative', width: barWidth, height: barHeight }}>

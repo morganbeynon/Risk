@@ -7,11 +7,10 @@ export default function MapGrid({ phase, update, render }) {
     const rows = 6;
     const cols = 6;
     const engine = window.GameEngine;
-    const player = engine.getCurrentPlayer();
+    const player = engine.applyAction("getCurrentPlayer");
 
     const [sourceTerritory, setSourceTerritory] = React.useState(null);
     const [sourceTerritories, setSourceTerritories] = React.useState([]);
-    const [mapData, setMapData] = React.useState(engine.territories);
     const [reinforced, setReinforced] = React.useState(false);
     const [isVisible, setIsVisible] = React.useState(false);
     const [currentTerritory, setCurrTerritory] = React.useState(null);
@@ -32,14 +31,14 @@ export default function MapGrid({ phase, update, render }) {
             {Array.from({ length: rows * cols }).map((_, i) => {
                 const x = Math.floor(i / cols);
                 const y = i % cols;
-                const currTerritory = engine.findTerritory(x, y);
+                const currTerritory = engine.applyAction("findTerritory",{x: x, y: y});
 
                 let troopCount = null;
                 let cellColour = "grey";
 
                 if (currTerritory) {
                     if (currTerritory.owner) {
-                        const cellPlayer = engine.getPlayerByTerr(currTerritory.owner);
+                        const cellPlayer = engine.applyAction("getPlayerByTerr", {id: currTerritory.owner});
                         cellColour = cellPlayer.colour || "grey";
                         troopCount = currTerritory.troopCount;
                     } else {
@@ -92,13 +91,14 @@ export default function MapGrid({ phase, update, render }) {
                                     return;
                                 }
 
-                                const result = engine.attack(
-                                    player,
-                                    sourceTerritory,
-                                    currTerritory
+                                const result = engine.applyAction("attack",
+                                    {player: player,
+                                    territory: sourceTerritory,
+                                    selectedTerritory: currTerritory
+                                    }
                                 );
 
-                                setMapData([...engine.territories]);
+                                update(true);
 
                                 if (result?.result) {
                                     if (result.troops > 0) {
@@ -136,9 +136,9 @@ export default function MapGrid({ phase, update, render }) {
                                     }
 
                                     const neighbours = Array.from(
-                                        engine.getConnectingTerritories(
-                                            sourceTerritories[0].row,
-                                            sourceTerritories[0].col
+                                        engine.applyAction("getConnectingTerritories",
+                                            {x: sourceTerritories[0].row,
+                                            y: sourceTerritories[0].col}
                                         )
                                     );
 
@@ -172,8 +172,8 @@ export default function MapGrid({ phase, update, render }) {
 
 
                     if (phase === "Deploy" && currentTerritory) {
-                        engine.deploy(player, currentTerritory, amount);
-                        setMapData([...engine.territories]);
+                        engine.applyAction("deploy",{player: player, territory: currentTerritory, amount: amount});
+                        update(true);
                         setIsVisible(false);
                         setCurrTerritory(null);
                         render();
@@ -181,13 +181,13 @@ export default function MapGrid({ phase, update, render }) {
                     }
 
                     else if (phase === "Reinforce" && sourceTerritories[0] && currentTerritory) {
-                        engine.fortify(
-                            player,
-                            sourceTerritories[0],
-                            currentTerritory,
-                            amount
+                        engine.applyAction("fortify",
+                            {player: player,
+                            territory: sourceTerritories[0],
+                            selectedTerritory: currentTerritory,
+                            amount: amount}
                         );
-                        setMapData([...engine.territories]);
+                        update(true);
                         setSourceTerritories([]);
                         setCurrTerritory(null);
                         setIsVisible(false);
@@ -202,7 +202,7 @@ export default function MapGrid({ phase, update, render }) {
                         attackSource.troopCount -= amount;
                         currentTerritory.troopCount += amount;
 
-                        setMapData([...engine.territories]);
+                        update(true);
                         setAttackSource(null);
                         setCurrTerritory(null);
                         setIsVisible(false);

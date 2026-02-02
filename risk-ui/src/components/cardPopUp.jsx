@@ -7,8 +7,8 @@ import tankImage from "../images/tank.png";
 export default function cardPopUp({onConfirm, colour, visible, value, checkout, removeCards}){
     if (!visible) return null;
     const engine = window.GameEngine;
-    const player = engine.getCurrentPlayer();
-    const phase = engine.getPhase()
+    const player = engine.applyAction("getCurrentPlayer")
+    const phase = engine.applyAction("getPhase")
     let text = ""
     let buttonColour = "grey"
     let cursor = "not-allowed"
@@ -21,7 +21,7 @@ export default function cardPopUp({onConfirm, colour, visible, value, checkout, 
                 console.log("returned")
                 return;
             } 
-            engine.redeemCards(player)
+            engine.applyAction("redeemCards", {player: player})
             onConfirm();
 
         }

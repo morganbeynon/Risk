@@ -6,8 +6,8 @@ export default function TroopInput({onConfirm, colour, visible, validAmount}){
     if (!visible) return null;
     const [amount, setAmount] = React.useState("")
     const engine = window.GameEngine;
-    const player = engine.getCurrentPlayer();
-    const phase = engine.getPhase()
+    const player = engine.applyAction("getCurrentPlayer");
+    const phase = engine.applyAction("getPhase")
     let text = ""
     const handleConfirm = () => {
         const numAmount = parseInt(amount);
