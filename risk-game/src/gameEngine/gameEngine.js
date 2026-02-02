@@ -165,8 +165,7 @@ class GameEngine{
             return true;
         }
         else{
-            alert("You can only deploy to owned territories")
-            return false;
+            return { error: "INVALID_ATTACK_OWNED_TERRITORY" };
         }
     }
 
@@ -176,14 +175,12 @@ class GameEngine{
         }
 
         if (territory.id === selectedTerritory.id || territory.owner === selectedTerritory.owner) {
-            alert("You cannot attack your own territory");
-            return;
+            return { error: "INVALID_ATTACK_OWNED_TERRITORY" };
         }
 
         // Must be adjacent
         if (!this.checkAdjacency(territory, selectedTerritory, "Attack")) {
-            alert("You must attack an adjacent enemy territory");
-            return;
+            return { error: "INVALID_ATTACK_NOT_ADJACENT" };
         }
 
         // Must have >1 troop
@@ -265,16 +262,18 @@ class GameEngine{
                 territory.troopCount -= amount
                 }
                 else{
-                    alert("Must fortify to an owned territory")
+                    return { error: "INVALID_ATTACK_NOT_OWNED" };
                 }
             }
             else{
-                alert("You must leave 1 troop behind")
+                return { error: "INVALID_ATTACK_ONE_TROOP" };
             }
         
             
         }  
-        else{alert("Must fortify to an adjacent territory")}
+        else{
+            return { error: "INVALID_ATTACK_NOT_ADJACENT" };
+        }
     }
 
     checkAdjacency(territory, selectedTerritory, mode ){
@@ -911,10 +910,10 @@ class GameEngine{
             
     }
 
-    findTerritory = (x, y) => {
+    findTerritory(x, y){
         return this.territories.find(t => t.row === x && t.col === y)
     }
-    getPlayerByTerr = (id) => {
+    getPlayerByTerr(id){
         return this.players.find(p => p.id == id)
     }
     //TO ADD

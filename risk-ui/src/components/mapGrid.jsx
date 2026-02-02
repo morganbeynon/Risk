@@ -1,5 +1,5 @@
 import React from 'react'
-import { GameEngine } from 'risk-game';
+import { GameEngine } from 'risk-game/src/gameEngine/index.js';
 import TerritoryCell from './territoryCell';
 import TroopInput from './troopInput';
 
