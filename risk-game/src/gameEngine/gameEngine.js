@@ -122,6 +122,8 @@ class GameEngine{
                     throw new Error("Invalid fortify parameters");
                 } 
                 return this.fortify(parameters.player, parameters.territory, parameters.selectedTerritory, parameters.amount)
+            case "moveAfterAttack":
+                return this.moveAfterAttack(parameters.sourceTerr, parameters.moveTerr, parameters.amount)
             default:
                 throw new Error(`Unknown action: ${action}`);
 
@@ -290,6 +292,11 @@ class GameEngine{
             };
         }
 
+    }
+
+    moveAfterAttack(sourceTerr, moveTerr, amount){
+        sourceTerr.troopCount -= amount;
+        moveTerr.troopCount += amount;
     }
 
     fortify(player, territory, selectedTerritory, amount){

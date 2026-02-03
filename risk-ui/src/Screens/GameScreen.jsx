@@ -4,10 +4,12 @@ import { GameEngine, Player } from "risk-game";
 
 
 export default function GameScreen() {
-    const [engine, setEngine] = useState(null);
+    const engineRef = React.useRef(null);
     const [tick, setTick] = useState(0);
     const [deployed, setDeployed] = useState(false);
     const [winner, setWinner] = useState(null)
+    const rerender = () => setTick(t => t + 1);
+    const engine = engineRef.current;
 
 
     //TESTING MAP GRID DELETE AFTER
@@ -23,6 +25,7 @@ export default function GameScreen() {
 
         // 2. Make engine instance
         let game = new GameEngine(players, [], [], 0, 0);
+        engineRef.current = game;
 
         // 3. Generate map + assign owners
         game.createTerritories();
@@ -32,20 +35,20 @@ export default function GameScreen() {
         // 4. Expose engine globally so MapGrid reads it
         window.GameEngine = game;
 
-        setEngine(game);
         setDeployed(false);
-
+        rerender()
         
         
     }, []);
 
     useEffect(() => {
+        const engine = engineRef.current;
         if (engine && engine.winner) {
             setWinner(engine.winner);
         }
-    }, [tick, engine]);
+    }, [tick]);
 
-    if (!engine) return <div>Loading...</div>;
+    if (!engineRef.current) return <div>Loading...</div>;
     return(
             <div
                 style={{
@@ -75,7 +78,7 @@ export default function GameScreen() {
                         }
                         engine.nextTurn();  
                         setDeployed(false);       
-                        setTick(t => t + 1);
+                        rerender();
                     }} />
                 </div>
 
@@ -97,7 +100,7 @@ export default function GameScreen() {
                         justifyContent: "center",
                     }}>
                         <Components.MapGrid phase ={engine.getPhase()} update={(hasDeployed) => {setDeployed(hasDeployed);
-                            setTick(t => t + 1)}} render = {() => {setTick(t => t + 1)}} 
+                            rerender()}} render = {() => {rerender()}} 
                         />
                     </div>
                     <div
@@ -125,7 +128,7 @@ export default function GameScreen() {
                         if(deployed){
                             engine.nextPhase();
                             setDeployed(false)
-                            setTick(t => t + 1);
+                            rerender();
                         }
                         else{
                             alert("Please deploy all available troops")
@@ -134,11 +137,11 @@ export default function GameScreen() {
                     }
                     else if(engine.getPhase() == "Attack"){
                         engine.nextPhase();
-                        setTick(t => t + 1);
+                        rerender();
                 }
                 else{
                     engine.nextPhase();
-                        setTick(t => t + 1);
+                        rerender();
                 }
                }} />
                <Components.WinPopUp

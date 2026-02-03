@@ -199,8 +199,8 @@ export default function MapGrid({ phase, update, render }) {
                         if (!attackSource || !currentTerritory){
                             return;
                         } 
-                        attackSource.troopCount -= amount;
-                        currentTerritory.troopCount += amount;
+
+                        engine.applyAction("moveAfterAttack", {sourceTerr: attackSource, moveTerr: currentTerritory, amount: amount})
 
                         update(true);
                         setAttackSource(null);

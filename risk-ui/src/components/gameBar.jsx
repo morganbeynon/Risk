@@ -10,6 +10,8 @@ export default function GameBar({ player, phase}) {
     const colour = player.colour;
     const engine = window.GameEngine
     const [showCards, setShowCards] = React.useState(false);
+    const [cardState, setCardState] = useState(null);
+
 
     let text = "";
     if (phase === 'Deploy') {
@@ -19,7 +21,12 @@ export default function GameBar({ player, phase}) {
     } else {
         text = "Reinforce";
     }
-    const {checkOut, cardValues: value, removeCards } = engine.applyAction("checkCards",{player: player})
+
+    const openCards = () => {
+        setCardState(engine.applyAction("checkCards", { player }));
+        setShowCards(true);
+    };
+
 
     return (
         <div style={{ position: 'relative', width: barWidth, height: barHeight }}>
@@ -35,7 +42,7 @@ export default function GameBar({ player, phase}) {
             >
                 <CardStack
                     player={player}
-                    onClick={() => setShowCards(true)}
+                    onClick={openCards}
                 />
 
                 <span
