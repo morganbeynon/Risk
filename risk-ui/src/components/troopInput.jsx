@@ -1,11 +1,11 @@
 
 import React from 'react';
-import { GameEngine, Player } from 'risk-game';
 
-export default function TroopInput({onConfirm, colour, visible, validAmount}){
+
+export default function TroopInput({engine, onConfirm, colour, visible, validAmount}){
     if (!visible) return null;
     const [amount, setAmount] = React.useState("")
-    const engine = window.GameEngine;
+    const engine = engine  
     const player = engine.applyAction("getCurrentPlayer");
     const phase = engine.applyAction("getPhase")
     let text = ""

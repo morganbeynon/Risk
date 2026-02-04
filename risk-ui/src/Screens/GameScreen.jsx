@@ -99,7 +99,7 @@ export default function GameScreen() {
                         alignItems: "center",
                         justifyContent: "center",
                     }}>
-                        <Components.MapGrid phase ={engine.getPhase()} update={(hasDeployed) => {setDeployed(hasDeployed);
+                        <Components.MapGrid engine = {engine} phase ={engine.getPhase()} update={(hasDeployed) => {setDeployed(hasDeployed);
                             rerender()}} render = {() => {rerender()}} 
                         />
                     </div>
@@ -116,6 +116,7 @@ export default function GameScreen() {
                 </div>
                 <div style={{ marginBottom: "8px" }}>
                     <Components.GameBar
+                        engine={engine}
                         player={engine.getCurrentPlayer()}
                         phase={engine.getPhase()}
                     />

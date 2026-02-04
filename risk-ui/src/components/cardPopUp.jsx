@@ -4,9 +4,9 @@ import shootingSoldierImage from "../images/shootingSoldier.png";
 import calvaryImage from "../images/calvary.png";
 import tankImage from "../images/tank.png";
 
-export default function cardPopUp({onConfirm, colour, visible, value, checkout, removeCards}){
+export default function cardPopUp({engine, onConfirm, colour, visible, value, checkout, removeCards}){
     if (!visible) return null;
-    const engine = window.GameEngine;
+    const engine = engine
     const player = engine.applyAction("getCurrentPlayer")
     const phase = engine.applyAction("getPhase")
     let text = ""

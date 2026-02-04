@@ -8,7 +8,7 @@ export default function GameBar({ player, phase}) {
     const barWidth = 300;
     const barHeight = 50;
     const colour = player.colour;
-    const engine = window.GameEngine
+    const engine = engine
     const [showCards, setShowCards] = React.useState(false);
     const [cardState, setCardState] = useState(null);
 
@@ -69,6 +69,7 @@ export default function GameBar({ player, phase}) {
             </div>
 
             <CardPopUp
+                engine = {engine}
                 visible={showCards}
                 colour={player.colour}
                 onConfirm={() => setShowCards(false)}

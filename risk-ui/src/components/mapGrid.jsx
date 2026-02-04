@@ -3,10 +3,10 @@ import { GameEngine } from 'risk-game/src/gameEngine/index.js';
 import TerritoryCell from './territoryCell';
 import TroopInput from './troopInput';
 
-export default function MapGrid({ phase, update, render }) {
+export default function MapGrid({ engine, phase, update, render }) {
     const rows = 6;
     const cols = 6;
-    const engine = window.GameEngine;
+    const engine = engine
     const player = engine.applyAction("getCurrentPlayer");
 
     const [sourceTerritory, setSourceTerritory] = React.useState(null);
@@ -165,6 +165,7 @@ export default function MapGrid({ phase, update, render }) {
             })}
 
             <TroopInput
+                engine={engine}
                 colour={player.colour}
                 validAmount={validAmount}
                 visible={isVisible}
