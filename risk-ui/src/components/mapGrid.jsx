@@ -2,12 +2,12 @@ import React from 'react'
 import { GameEngine } from 'risk-game/src/gameEngine/index.js';
 import TerritoryCell from './territoryCell';
 import TroopInput from './troopInput';
+import socket from '../socket'
 
 export default function MapGrid({ engine, phase, update, render }) {
     const rows = 6;
     const cols = 6;
-    const engine = engine
-    const player = engine.applyAction("getCurrentPlayer");
+    const player = engine.getCurrentPlayer();
 
     const [sourceTerritory, setSourceTerritory] = React.useState(null);
     const [sourceTerritories, setSourceTerritories] = React.useState([]);
@@ -31,14 +31,14 @@ export default function MapGrid({ engine, phase, update, render }) {
             {Array.from({ length: rows * cols }).map((_, i) => {
                 const x = Math.floor(i / cols);
                 const y = i % cols;
-                const currTerritory = engine.applyAction("findTerritory",{x: x, y: y});
+                const currTerritory = engine.findTerritory(x, y);
 
                 let troopCount = null;
                 let cellColour = "grey";
 
                 if (currTerritory) {
                     if (currTerritory.owner) {
-                        const cellPlayer = engine.applyAction("getPlayerByTerr", {id: currTerritory.owner});
+                        const cellPlayer = engine.getPlayerByTerr(currTerritory.owner);
                         cellColour = cellPlayer.colour || "grey";
                         troopCount = currTerritory.troopCount;
                     } else {
@@ -90,13 +90,11 @@ export default function MapGrid({ engine, phase, update, render }) {
                                     setSourceTerritory(null);
                                     return;
                                 }
+                                let result = null
+                                socket.emit("player-action", { action: "attack", payload: { player, sourceTerritory, currTerritory } }, (response) => {
+                                    result = response
+                                });
 
-                                const result = engine.applyAction("attack",
-                                    {player: player,
-                                    territory: sourceTerritory,
-                                    selectedTerritory: currTerritory
-                                    }
-                                );
 
                                 update(true);
 
@@ -136,10 +134,7 @@ export default function MapGrid({ engine, phase, update, render }) {
                                     }
 
                                     const neighbours = Array.from(
-                                        engine.applyAction("getConnectingTerritories",
-                                            {x: sourceTerritories[0].row,
-                                            y: sourceTerritories[0].col}
-                                        )
+                                        engine.getConnectingTerritories(sourceTerritories[0].row, sourceTerritories[0].col)
                                     );
 
                                     if (!neighbours.includes(currTerritory.id)) {
@@ -173,7 +168,8 @@ export default function MapGrid({ engine, phase, update, render }) {
 
 
                     if (phase === "Deploy" && currentTerritory) {
-                        engine.applyAction("deploy",{player: player, territory: currentTerritory, amount: amount});
+                        socket.emit("player-action", { action: "deploy", payload: {player, currentTerritory, amount} })
+    
                         update(true);
                         setIsVisible(false);
                         setCurrTerritory(null);
@@ -182,12 +178,10 @@ export default function MapGrid({ engine, phase, update, render }) {
                     }
 
                     else if (phase === "Reinforce" && sourceTerritories[0] && currentTerritory) {
-                        engine.applyAction("fortify",
-                            {player: player,
-                            territory: sourceTerritories[0],
-                            selectedTerritory: currentTerritory,
-                            amount: amount}
-                        );
+                        
+                        let fortTerr = sourceTerritories[0]
+                        socket.emit("player-action", { action: "fortify", payload: {player, fortTerr, currentTerritory, amount} })
+    
                         update(true);
                         setSourceTerritories([]);
                         setCurrTerritory(null);
@@ -201,8 +195,8 @@ export default function MapGrid({ engine, phase, update, render }) {
                             return;
                         } 
 
-                        engine.applyAction("moveAfterAttack", {sourceTerr: attackSource, moveTerr: currentTerritory, amount: amount})
-
+                        socket.emit("player-action", { action: "moveAfterAttack", payload: {attackSource, currentTerritory, amount} })
+    
                         update(true);
                         setAttackSource(null);
                         setCurrTerritory(null);

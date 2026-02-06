@@ -1,14 +1,15 @@
 import React from 'react';
-import { GameEngine, Player } from 'risk-game';
 import shootingSoldierImage from "../images/shootingSoldier.png";
 import calvaryImage from "../images/calvary.png";
 import tankImage from "../images/tank.png";
+import socket from './socket';
+
+
 
 export default function cardPopUp({engine, onConfirm, colour, visible, value, checkout, removeCards}){
     if (!visible) return null;
-    const engine = engine
-    const player = engine.applyAction("getCurrentPlayer")
-    const phase = engine.applyAction("getPhase")
+    const player = engine.getCurrentPlayer()
+    const phase = engine.getPhase()
     let text = ""
     let buttonColour = "grey"
     let cursor = "not-allowed"
@@ -21,7 +22,7 @@ export default function cardPopUp({engine, onConfirm, colour, visible, value, ch
                 console.log("returned")
                 return;
             } 
-            engine.applyAction("redeemCards", {player: player})
+            socket.emit("player-action", { action: "redeemPlayer", payload: {player} });
             onConfirm();
 
         }

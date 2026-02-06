@@ -1,16 +1,17 @@
-import React from 'react'
 import CardStack from './cardStack'
 import PhaseIcon from './phaseIcon';
 import CardPopUp from './cardPopUp';
+import React, { useEffect, useState } from "react";
 import { GameEngine, Player, Territory,Continent } from 'risk-game';
 
-export default function GameBar({ player, phase}) {
+export default function GameBar({ engine, player, phase}) {
     const barWidth = 300;
     const barHeight = 50;
     const colour = player.colour;
-    const engine = engine
+    
     const [showCards, setShowCards] = React.useState(false);
     const [cardState, setCardState] = useState(null);
+    let results = null;
 
 
     let text = "";
@@ -23,7 +24,9 @@ export default function GameBar({ player, phase}) {
     }
 
     const openCards = () => {
-        setCardState(engine.applyAction("checkCards", { player }));
+        socket.emit("player-action", { action: "checkCards", payload: { player } }, (response) => {
+            setCardState(response);
+        });
         setShowCards(true);
     };
 
@@ -73,9 +76,9 @@ export default function GameBar({ player, phase}) {
                 visible={showCards}
                 colour={player.colour}
                 onConfirm={() => setShowCards(false)}
-                value = {value}
-                checkout = {checkOut}
-                removeCards = {removeCards}
+                value = {results?.value}
+                checkout = {results?.checkOut}
+                removeCards = {results?.removeCards}
                 
             />
         </div>

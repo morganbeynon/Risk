@@ -4,10 +4,9 @@ import React from 'react';
 
 export default function TroopInput({engine, onConfirm, colour, visible, validAmount}){
     if (!visible) return null;
-    const [amount, setAmount] = React.useState("")
-    const engine = engine  
-    const player = engine.applyAction("getCurrentPlayer");
-    const phase = engine.applyAction("getPhase")
+    const [amount, setAmount] = React.useState("") 
+    const player = engine.getCurrentPlayer();
+    const phase = engine.getPhase();
     let text = ""
     const handleConfirm = () => {
         const numAmount = parseInt(amount);

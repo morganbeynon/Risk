@@ -1,6 +1,5 @@
 export {default as MapGrid} from "./mapGrid.jsx"
 export {default as Button} from "./button.jsx"
-export {default as Header} from "./header.jsx"
 export {default as Profile} from "./profile.jsx"
 export {default as TerritoryCell} from "./territoryCell.jsx"
 export {default as TextBox} from "./textBox.jsx"

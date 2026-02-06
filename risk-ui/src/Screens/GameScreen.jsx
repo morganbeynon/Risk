@@ -32,8 +32,6 @@ export default function GameScreen() {
         game.assignTerritories();
         game.attemptLinks();
 
-        // 4. Expose engine globally so MapGrid reads it
-        window.GameEngine = game;
 
         setDeployed(false);
         rerender()

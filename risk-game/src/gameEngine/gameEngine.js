@@ -89,46 +89,46 @@ class GameEngine{
         this.winner = null
     }
 
-    applyAction(action, parameters = {}){
-        switch (action){
-            case "nextTurn":
-                return this.nextTurn()
-            case "getCurrentPlayer":
-                return this.getCurrentPlayer()
-            case "getPhase":
-                return this.getPhase()
-            case "redeemCards":
-                return this.redeemCards(parameters.player);
-            case "checkCards":
-                return this.checkCards(parameters.player);
-            case "findTerritory":
-                return this.findTerritory(parameters.x,parameters.y)
-            case "getPlayerByTerr":
-                return this.getPlayerByTerr(parameters.id)
-            case "attack":
-                if (!parameters.player || !parameters.territory || !parameters.selectedTerritory) {
-                    throw new Error("Invalid attack parameters");
-                }   
-                return this.attack(parameters.player, parameters.territory, parameters.selectedTerritory)
-            case "getConnectingTerritories":
-                return this.getConnectingTerritories(parameters.x, parameters.y);
-            case "deploy":
-                if (!parameters.player || !parameters.territory || parameters.amount <= 0) {
-                    throw new Error("Invalid deploy parameters");
-                } 
-                return this.deploy(parameters.player, parameters.territory, parameters.amount)
-            case "fortify":
-                if (!parameters.player || !parameters.territory || !parameters.selectedTerritory || parameters.amount <= 0) {
-                    throw new Error("Invalid fortify parameters");
-                } 
-                return this.fortify(parameters.player, parameters.territory, parameters.selectedTerritory, parameters.amount)
-            case "moveAfterAttack":
-                return this.moveAfterAttack(parameters.sourceTerr, parameters.moveTerr, parameters.amount)
-            default:
-                throw new Error(`Unknown action: ${action}`);
+    // applyAction(action, parameters = {}){
+    //     switch (action){
+    //         case "nextTurn":
+    //             return this.nextTurn()
+    //         case "getCurrentPlayer":
+    //             return this.getCurrentPlayer()
+    //         case "getPhase":
+    //             return this.getPhase()
+    //         case "redeemCards":
+    //             return this.redeemCards(parameters.player);
+    //         case "checkCards":
+    //             return this.checkCards(parameters.player);
+    //         case "findTerritory":
+    //             return this.findTerritory(parameters.x,parameters.y)
+    //         case "getPlayerByTerr":
+    //             return this.getPlayerByTerr(parameters.id)
+    //         case "attack":
+    //             if (!parameters.player || !parameters.territory || !parameters.selectedTerritory) {
+    //                 throw new Error("Invalid attack parameters");
+    //             }   
+    //             return this.attack(parameters.player, parameters.territory, parameters.selectedTerritory)
+    //         case "getConnectingTerritories":
+    //             return this.getConnectingTerritories(parameters.x, parameters.y);
+    //         case "deploy":
+    //             if (!parameters.player || !parameters.territory || parameters.amount <= 0) {
+    //                 throw new Error("Invalid deploy parameters");
+    //             } 
+    //             return this.deploy(parameters.player, parameters.territory, parameters.amount)
+    //         case "fortify":
+    //             if (!parameters.player || !parameters.territory || !parameters.selectedTerritory || parameters.amount <= 0) {
+    //                 throw new Error("Invalid fortify parameters");
+    //             } 
+    //             return this.fortify(parameters.player, parameters.territory, parameters.selectedTerritory, parameters.amount)
+    //         case "moveAfterAttack":
+    //             return this.moveAfterAttack(parameters.sourceTerr, parameters.moveTerr, parameters.amount)
+    //         default:
+    //             throw new Error(`Unknown action: ${action}`);
 
-        }
-    }
+    //     }
+    // }
     nextTurn(){
         const playerCount = this.players.length;
         if (this.turn === playerCount - 1) {
@@ -823,7 +823,7 @@ class GameEngine{
                 links.push(minPair);
                 connected.push(remaining.splice(removeIdx, 1)[0]);
             } else {
-                console.log("Failed to link all groups");
+                console.log("Failed to link all g roups");
                 break;
             }
         }
