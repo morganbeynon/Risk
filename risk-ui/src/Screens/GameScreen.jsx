@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import * as Components from "../components";
-import { GameEngine, Player } from "risk-game";
+import { GameEngine, Player } from "risk-game";4
+import { io } from "socket.io-client";
+const socket = io("http://localhost:5000");
+
 
 
 export default function GameScreen() {
@@ -15,26 +18,11 @@ export default function GameScreen() {
     //TESTING MAP GRID DELETE AFTER
 
     useEffect(() => {
-        // 1. Create players
-        const players = [
-            new Player(1, [], 0, 0, [], 0, 3, [], "red", false),
-            new Player(2, [], 0, 0, [], 0, 3, [], "green", false),
-            new Player(3, [], 0, 0, [], 0, 3, [], "gold", false),
-            new Player(4, [], 0, 0, [], 0, 3, [], "pink", false),
-        ];
+        socket.on("game-state", (state) => {
+            engineRef.current = GameEngine.deserialize(state);
+            rerender();
+        });
 
-        // 2. Make engine instance
-        let game = new GameEngine(players, [], [], 0, 0);
-        engineRef.current = game;
-
-        // 3. Generate map + assign owners
-        game.createTerritories();
-        game.assignTerritories();
-        game.attemptLinks();
-
-
-        setDeployed(false);
-        rerender()
         
         
     }, []);
@@ -125,9 +113,11 @@ export default function GameScreen() {
                     }
                     if (engine.getPhase() == "Deploy"){
                         if(deployed){
-                            engine.nextPhase();
-                            setDeployed(false)
-                            rerender();
+                            socket.emit("player-action", {
+                                action: "nextTurn",
+                                payload: {}
+                            });
+                            setDeployed(false);
                         }
                         else{
                             alert("Please deploy all available troops")
