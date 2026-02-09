@@ -2,7 +2,7 @@ import React from 'react';
 import shootingSoldierImage from "../images/shootingSoldier.png";
 import calvaryImage from "../images/calvary.png";
 import tankImage from "../images/tank.png";
-import socket from './socket';
+import socket from '../socket';
 
 
 

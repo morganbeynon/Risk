@@ -965,5 +965,32 @@ class GameEngine{
     //REDEEM CARDS - NEED UI
     // TERRITORIES - NEED MAP GEN
 
+    serialise(){
+        return {
+            players: this.players,
+            territories: this.territories,
+            continents: this.continents,
+            turn: this.turn,
+            phase: this.phase,
+            winner: this.winner,
+        };
+    }
+
+    static deserialise(input){
+        const players = input.players.map(p =>
+        Object.assign(new Player(), p)
+        );
+        const engine = new GameEngine(
+            players,
+            input.territories,
+            input.continents,
+            input.turn,
+            input.phase
+        );
+        engine.winner = input.winner;
+
+        return engine;
+    }
+
 }
 export { Player, Territory, Continent, Card, GameEngine };

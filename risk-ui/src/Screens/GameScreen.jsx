@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import * as Components from "../components";
-import { GameEngine, Player } from "risk-game";4
+import { GameEngine, Player } from "risk-game"; 
 import { io } from "socket.io-client";
 const socket = io("http://localhost:5000");
 
@@ -14,12 +14,9 @@ export default function GameScreen() {
     const rerender = () => setTick(t => t + 1);
     const engine = engineRef.current;
 
-
-    //TESTING MAP GRID DELETE AFTER
-
     useEffect(() => {
         socket.on("game-state", (state) => {
-            engineRef.current = GameEngine.deserialize(state);
+            engineRef.current = GameEngine.deserialise(state);
             rerender();
         });
 
