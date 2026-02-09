@@ -59,7 +59,10 @@ export default function GameScreen() {
                         if (winner){
                             return
                         }
-                        engine.nextTurn();  
+                        socket.emit("player-action", {
+                                action: "nextTurn",
+                                payload: {}
+                        }); 
                         setDeployed(false);       
                         rerender();
                     }} />

@@ -9,20 +9,33 @@ const io = new Server(server, {
   cors: { origin: "*" }
 });
 
-io.on("connection", (socket) => {
-  console.log("Client connected", socket.id);
-
-  const players = [
+ const players = [
     new Player("Player 1", [], 0, 0, [], 0, 3, [], "red", false),
     new Player("Player 2", [], 0, 0, [], 0, 3, [], "green", false),
   ];
+
+
+
 
   const engine = new GameEngine(players, [], [], 0, 0);
   engine.createTerritories();
   engine.assignTerritories();
   engine.attemptLinks();
 
+  engine.__id = Math.random();
+  console.log("ENGINE ID:", engine.__id);
+
+io.on("connection", (socket) => {
+  console.log("Client connected", socket.id);
+
+ 
   socket.emit("game-state", engine.serialise());
+
+  socket.on("player-action", ({ action, payload }) => {
+    engine.applyAction(action, payload);
+    io.emit("game-state", engine.serialise());
+  });
+
 });
 
 server.listen(5000, () => {
