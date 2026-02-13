@@ -25,18 +25,27 @@ const io = new Server(server, {
   engine.__id = Math.random();
   console.log("ENGINE ID:", engine.__id);
 
+setInterval(() => {
+    engine.nextTurn();
+    io.emit("game-state", engine.serialise());
+}, 20000);
+
 io.on("connection", (socket) => {
   console.log("Client connected", socket.id);
 
- 
   socket.emit("game-state", engine.serialise());
 
+  socket.on("disconnect", () => {
+    console.log("Client disconnected", socket.id);
+  });
+
   socket.on("player-action", ({ action, payload }) => {
+    console.log("Action received:", action, payload);
     engine.applyAction(action, payload);
     io.emit("game-state", engine.serialise());
   });
-
 });
+
 
 server.listen(5000, () => {
   console.log("Listening on port 5000");
