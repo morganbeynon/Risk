@@ -1,37 +1,36 @@
 import React, { useEffect, useState } from "react";
 import * as Components from "../components";
-import { GameEngine, Player } from "risk-game"; 
+import MapGrid from "../components/mapGrid";
+
 import { io } from "socket.io-client";
 const socket = io("http://localhost:5000");
 
 
 
 export default function GameScreen() {
-    const engineRef = React.useRef(null);
+
     const [tick, setTick] = useState(0);
     const [deployed, setDeployed] = useState(false);
     const [winner, setWinner] = useState(null)
     const rerender = () => setTick(t => t + 1);
-    const engine = engineRef.current;
+    const [gameState, setGameState] = useState(null);
+    const [phase, setPhase] = useState(null);
 
     useEffect(() => {
         socket.on("game-state", (state) => {
-            engineRef.current = GameEngine.deserialise(state);
-            rerender();
+            setGameState(state);
+            setPhase(state.phase)
         });
-
-        
-        
     }, []);
 
     useEffect(() => {
-        const engine = engineRef.current;
-        if (engine && engine.winner) {
-            setWinner(engine.winner);
+        if (gameState?.winner) {
+            setWinner(gameState.winner);
         }
-    }, [tick]);
+    }, [gameState]);
 
-    if (!engineRef.current) return <div>Loading...</div>;
+
+    if (!gameState) return <div>Loading...</div>;
     return(
             <div
                 style={{
@@ -52,9 +51,9 @@ export default function GameScreen() {
                         marginBottom: "12px",
                     }}
                     >
-                    <Components.TurnBar colour={engine.getCurrentPlayer().colour} />
+                    <Components.TurnBar colour={gameState.players[gameState.turn].colour} />
                     <Components.Clock 
-                        key = {engine.turn}
+                        key = {gameState.turn}
                         alarm ={() => {
                         if (winner){
                             return
@@ -85,9 +84,15 @@ export default function GameScreen() {
                         alignItems: "center",
                         justifyContent: "center",
                     }}>
-                        <Components.MapGrid engine = {engine} phase ={engine.getPhase()} update={(hasDeployed) => {setDeployed(hasDeployed);
-                            rerender()}} render = {() => {rerender()}} 
+                        <MapGrid
+                            territories={gameState.territories}
+                            players={gameState.players}
+                            currentPlayer={gameState.players[gameState.turn]}
+                            phase={phase}
+                            update={setDeployed}
+                            render={() => {}}
                         />
+
                     </div>
                     <div
                         style={{
@@ -97,42 +102,32 @@ export default function GameScreen() {
                             boxShadow: "0 4px 0px rgba(0,0,0,0.4)",
                         }}
                         >
-                        <Components.ProfileStack playerList={engine.players} />
+                        <Components.ProfileStack playerList={gameState.players} />
                         </div>
                 </div>
                 <div style={{ marginBottom: "8px" }}>
                     <Components.GameBar
-                        engine={engine}
-                        player={engine.getCurrentPlayer()}
-                        phase={engine.getPhase()}
+                        player={gameState.players[gameState.turn]}
+                        phase={gameState.phase}
                     />
-                </div>
-                <Components.Button colour={engine.getCurrentPlayer().colour} onClick={() =>{
-                    if (winner){
-                        return
-                    }
-                    if (engine.getPhase() == "Deploy"){
-                        if(deployed){
-                            socket.emit("player-action", {
-                                action: "nextTurn",
-                                payload: {}
-                            });
+                </div> 
+                <Components.Button
+                colour={gameState.players[gameState.turn].colour}
+                onClick={() => {
+                    if (winner) return;
+
+                    if (gameState.phases[gameState.phaseNumber] === "Deploy") {
+                        if (deployed) {
+                            socket.emit("player-action", { action: "nextTurn", payload: {} });
                             setDeployed(false);
+                        } else {
+                            alert("Please deploy all available troops");
                         }
-                        else{
-                            alert("Please deploy all available troops")
-                            
-                        }
+                    } else {
+                        socket.emit("player-action", { action: "nextPhase", payload: {} });
                     }
-                    else if(engine.getPhase() == "Attack"){
-                        engine.nextPhase();
-                        rerender();
-                }
-                else{
-                    engine.nextPhase();
-                        rerender();
-                }
-               }} />
+                }}
+                />
                <Components.WinPopUp
                     visible={!!winner}
                     winner={winner}

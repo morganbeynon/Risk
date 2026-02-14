@@ -2,9 +2,9 @@ import CardStack from './cardStack'
 import PhaseIcon from './phaseIcon';
 import CardPopUp from './cardPopUp';
 import React, { useEffect, useState } from "react";
-import { GameEngine, Player, Territory,Continent } from 'risk-game';
 
-export default function GameBar({ engine, player, phase}) {
+
+export default function GameBar({player, phase}) {
     const barWidth = 300;
     const barHeight = 50;
     const colour = player.colour;
@@ -72,7 +72,6 @@ export default function GameBar({ engine, player, phase}) {
             </div>
 
             <CardPopUp
-                engine = {engine}
                 visible={showCards}
                 colour={player.colour}
                 onConfirm={() => setShowCards(false)}

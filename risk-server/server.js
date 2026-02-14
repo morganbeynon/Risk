@@ -9,15 +9,15 @@ const io = new Server(server, {
   cors: { origin: "*" }
 });
 
- const players = [
-    new Player("Player 1", [], 0, 0, [], 0, 3, [], "red", false),
-    new Player("Player 2", [], 0, 0, [], 0, 3, [], "green", false),
-  ];
+const players = [
+    new Player("Player 1", [], 0, 0, 0, 3, [], "red", false),
+    new Player("Player 2", [], 0, 0, 0, 3, [], "green", false),
+];
 
 
 
 
-  const engine = new GameEngine(players, [], [], 0, 0);
+  const engine = new GameEngine(players, [], 0, 0);
   engine.createTerritories();
   engine.assignTerritories();
   engine.attemptLinks();
@@ -39,11 +39,14 @@ io.on("connection", (socket) => {
     console.log("Client disconnected", socket.id);
   });
 
-  socket.on("player-action", ({ action, payload }) => {
-    console.log("Action received:", action, payload);
-    engine.applyAction(action, payload);
+  socket.on("player-action", ({ action, payload }, callback) => {
+    const result = engine.applyAction(action, payload);
+    if (callback){
+      callback(result);
+    }
     io.emit("game-state", engine.serialise());
   });
+
 });
 
 

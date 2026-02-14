@@ -4,12 +4,11 @@ let linkRoutes = []
 
 
 class Player{
-    constructor(id, territories = [], totalTroops, turnNumber, continents, placedTroops, deployableTroops, cards = [], colour, recievedCard){
+    constructor(id, territories = [], totalTroops, turnNumber, placedTroops, deployableTroops, cards = [], colour, recievedCard){
         this.id = id
         this.territories = territories
         this.totalTroops = totalTroops
         this.turnNumber = turnNumber
-        this.continents = continents
         this.placedTroops = placedTroops
         this.deployableTroops = deployableTroops
         this.cards = cards
@@ -20,45 +19,18 @@ class Player{
 
 class Territory {
     static instances = [];
-    constructor(row, col,id, troopCount = 0, owner= null, adjacent = [], continent = null, isLink = false, linkDirection = null){
+    constructor(row, col,id, troopCount = 0, owner= null, adjacent = [], isLink = false, linkDirection = null){
         this.id = id
         this.row = row
         this.col = col
         this.troopCount = troopCount
         this.owner = owner
         this.adjacent = adjacent
-        this.continent = continent
         this.isLink = isLink
         this.linkDirection = linkDirection
         Territory.instances.push(this)
     }
     
-}
-
-class Continent{ 
-    static instances = [];
-    constructor(id, territories = []){
-        this.id  = id
-        this.territories= territories
-        this.value = this.calculateValue();
-        Continent.instances.push(this)
-
-    } 
-
-    calculateValue(){
-        const length = this.territories.length;
-        let value
-        if (length < 5){
-            return 2;
-        }
-        else if (length > 5 && length < 8){
-            return 3;
-        }
-        else{
-            return 5;
-        }
-
-}
 }
 
 class Card{
@@ -79,13 +51,13 @@ class Card{
 }
 
 class GameEngine{
-    constructor(players, territories, continent, turn, phaseNumber ){
+    constructor(players, territories, turn = 0, phaseNumber = 0 ){
         this.players = players
         this.territories = territories
-        this.continents = continent
-        this.turn = 0;
-        this.phaseNumber = 0;
+        this.turn = turn
+        this.phaseNumber = phaseNumber
         this.roundCount = 0;
+        this.phases = ["Deploy", "Attack", "Reinforce"];
         this.winner = null
     }
 
@@ -124,7 +96,9 @@ class GameEngine{
                 return this.fortify(parameters.player, parameters.territory, parameters.selectedTerritory, parameters.amount)
             case "moveAfterAttack":
                 return this.moveAfterAttack(parameters.sourceTerr, parameters.moveTerr, parameters.amount)
-            default:
+            case "nextPhase":
+                return this.nextPhase()
+             default:
                 throw new Error(`Unknown action: ${action}`);
 
         }
@@ -915,15 +889,6 @@ class GameEngine{
         }
     }
 
-    continentValueCheck(player){
-        let continentValue = 0;
-        for (const continent of Continent.instances){
-            if (continent.territories.every(t => player.territories.includes(t))) {
-            continentValue += continent.value;
-            }
-        }
-        return continentValue
-    }
     reinforcementValue(player){
         if(this.roundCount == 0){
             return 3;
@@ -970,10 +935,10 @@ class GameEngine{
         return {
             players: this.players,
             territories: this.territories,
-            continents: this.continents,
             turn: this.turn,
-            phase: this.phase,
-            winner: this.winner,
+            phaseNumber: this.phaseNumber,
+            phase: this.phases[this.phaseNumber],
+            winner: this.winner
         };
     }
 
@@ -984,7 +949,6 @@ class GameEngine{
         const engine = new GameEngine(
             players,
             input.territories,
-            input.continents,
             input.turn,
             input.phase
         );
@@ -994,4 +958,4 @@ class GameEngine{
     }
 
 }
-export { Player, Territory, Continent, Card, GameEngine };
+export { Player, Territory,  Card, GameEngine };

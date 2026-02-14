@@ -1,13 +1,12 @@
 import React from 'react'
-import { GameEngine } from 'risk-game/src/gameEngine/index.js';
 import TerritoryCell from './territoryCell';
 import TroopInput from './troopInput';
 import socket from '../socket'
 
-export default function MapGrid({ engine, phase, update, render }) {
+export default function MapGrid({ territories, players, currentPlayer, phase, update, render}) {
     const rows = 6;
     const cols = 6;
-    const player = engine.getCurrentPlayer();
+    const player = currentPlayer
 
     const [sourceTerritory, setSourceTerritory] = React.useState(null);
     const [sourceTerritories, setSourceTerritories] = React.useState([]);
@@ -18,7 +17,7 @@ export default function MapGrid({ engine, phase, update, render }) {
     const [attackSource, setAttackSource] = React.useState(null);
 
 
-    if (!engine) return <div>Loading map...</div>;
+    if (!territories) return <div>Loading map...</div>;
 
     return (
         <div
@@ -31,19 +30,29 @@ export default function MapGrid({ engine, phase, update, render }) {
             {Array.from({ length: rows * cols }).map((_, i) => {
                 const x = Math.floor(i / cols);
                 const y = i % cols;
-                const currTerritory = engine.findTerritory(x, y);
+                const currTerritory = territories.find(t => t.row === x && t.col === y)
 
                 let troopCount = null;
-                let cellColour = "grey";
+                let cellColour = "blue";
 
                 if (currTerritory) {
-                    if (currTerritory.owner) {
-                        const cellPlayer = engine.getPlayerByTerr(currTerritory.owner);
-                        cellColour = cellPlayer.colour || "grey";
+                    if (currTerritory.owner !== null && currTerritory.owner !== undefined) {
+                        const cellPlayer = players.find(p => p.id === currTerritory.owner);
+                        cellColour = cellPlayer?.colour ?? "blue";
                         troopCount = currTerritory.troopCount;
-                    } else {
-                        cellColour = "blue";
                     }
+
+                }
+ 
+                if (!currTerritory) {
+                    return (
+                        <TerritoryCell
+                        key={`${x},${y}`}
+                        colour="grey"
+                        troopCount={null}
+                        onClick={() => {}}
+                        />
+                    );
                 }
 
                 return (
@@ -133,25 +142,28 @@ export default function MapGrid({ engine, phase, update, render }) {
                                         return;
                                     }
 
-                                    const neighbours = Array.from(
-                                        engine.getConnectingTerritories(sourceTerritories[0].row, sourceTerritories[0].col)
+                                    socket.emit(
+                                        "player-action",
+                                        {
+                                            action: "getConnectingTerritories",
+                                            payload: {
+                                            x: sourceTerritories[0].row,
+                                            y: sourceTerritories[0].col
+                                            }
+                                        },
+                                        (neighbours) => {
+                                            if (!neighbours.includes(currTerritory.id)) {
+                                            alert("Must reinforce to a connected territory");
+                                            setSourceTerritories([]);
+                                            return;
+                                            }
+
+                                            const max = sourceTerritories[0].troopCount - 1;
+                                            setValidAmount(max);
+                                            setCurrTerritory(currTerritory);
+                                            setIsVisible(true);
+                                        }
                                     );
-
-                                    if (!neighbours.includes(currTerritory.id)) {
-                                        alert("Must reinforce to a connected territory");
-                                        setSourceTerritories([]);
-                                        return;
-                                    }
-
-                                    const max = sourceTerritories[0].troopCount - 1;
-                                    if (max <= 0) {
-                                        alert("You must leave at least one troop behind");
-                                        return;
-                                    }
-
-                                    setValidAmount(max);
-                                    setCurrTerritory(currTerritory);
-                                    setIsVisible(true);
                                 }
                             }
                         }}
@@ -160,7 +172,7 @@ export default function MapGrid({ engine, phase, update, render }) {
             })}
 
             <TroopInput
-                engine={engine}
+                phase={phase}
                 colour={player.colour}
                 validAmount={validAmount}
                 visible={isVisible}
