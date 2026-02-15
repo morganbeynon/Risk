@@ -6,10 +6,8 @@ import socket from '../socket';
 
 
 
-export default function cardPopUp({onConfirm, colour, visible, value, checkout, removeCards}){
+export default function cardPopUp({onConfirm, colour, visible, value, checkout, removeCards, player, phase}){
     if (!visible) return null;
-    const currentPlayer = gameState.players[gameState.turn];
-    const phase = ["Deploy","Attack","Reinforce"][gameState.phaseNumber];
     let text = ""
     let buttonColour = "grey"
     let cursor = "not-allowed"

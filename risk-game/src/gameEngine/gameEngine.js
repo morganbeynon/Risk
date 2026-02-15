@@ -937,6 +937,7 @@ class GameEngine{
             territories: this.territories,
             turn: this.turn,
             phaseNumber: this.phaseNumber,
+            phases: this.phases,
             phase: this.phases[this.phaseNumber],
             winner: this.winner
         };

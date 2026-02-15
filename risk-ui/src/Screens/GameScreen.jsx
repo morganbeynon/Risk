@@ -2,8 +2,7 @@ import React, { useEffect, useState } from "react";
 import * as Components from "../components";
 import MapGrid from "../components/mapGrid";
 
-import { io } from "socket.io-client";
-const socket = io("http://localhost:5000");
+import socket from '../socket'
 
 
 
@@ -17,10 +16,31 @@ export default function GameScreen() {
     const [phase, setPhase] = useState(null);
 
     useEffect(() => {
-        socket.on("game-state", (state) => {
-            setGameState(state);
-            setPhase(state.phase)
+        socket.on("connect", () => {
+            console.log("Socket Connected! ID:", socket.id);
         });
+
+        socket.on("connect_error", (err) => {
+            console.error("Connection Error:", err.message);
+        });
+
+        const handleState = (state) => {
+            console.log("Game State Received:", state);
+            setGameState(state);
+            setPhase(state.phase);
+        };
+
+        socket.on("game-state", handleState);
+
+        if (socket.connected) {
+            socket.emit("request-initial-state");
+        }
+
+        return () => {
+            socket.off("game-state", handleState);
+            socket.off("connect");
+            socket.off("connect_error");
+        };
     }, []);
 
     useEffect(() => {
@@ -112,21 +132,23 @@ export default function GameScreen() {
                     />
                 </div> 
                 <Components.Button
-                colour={gameState.players[gameState.turn].colour}
-                onClick={() => {
-                    if (winner) return;
+                    colour={gameState.players[gameState.turn].colour}
+                    onClick={() => {
+                        if (winner) return;
+                        
+                        const currentPlayer = gameState.players[gameState.turn];
 
-                    if (gameState.phases[gameState.phaseNumber] === "Deploy") {
-                        if (deployed) {
-                            socket.emit("player-action", { action: "nextTurn", payload: {} });
-                            setDeployed(false);
+                        if (gameState.phases[gameState.phaseNumber] === "Deploy") {
+                            if (currentPlayer.deployableTroops === 0) {
+                                socket.emit("player-action", { action: "nextTurn", payload: {} });
+                                setDeployed(false);
+                            } else {
+                                alert(`Please deploy all available troops. (${currentPlayer.deployableTroops} remaining)`);
+                            }
                         } else {
-                            alert("Please deploy all available troops");
+                            socket.emit("player-action", { action: "nextPhase", payload: {} });
                         }
-                    } else {
-                        socket.emit("player-action", { action: "nextPhase", payload: {} });
-                    }
-                }}
+                    }}
                 />
                <Components.WinPopUp
                     visible={!!winner}

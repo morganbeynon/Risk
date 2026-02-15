@@ -2,6 +2,8 @@ import CardStack from './cardStack'
 import PhaseIcon from './phaseIcon';
 import CardPopUp from './cardPopUp';
 import React, { useEffect, useState } from "react";
+import socket from '../socket';
+
 
 
 export default function GameBar({player, phase}) {
@@ -78,7 +80,8 @@ export default function GameBar({player, phase}) {
                 value = {results?.value}
                 checkout = {results?.checkOut}
                 removeCards = {results?.removeCards}
-                
+                player = {player}
+                phase = {phase}
             />
         </div>
     );

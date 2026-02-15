@@ -22,31 +22,31 @@ const players = [
   engine.assignTerritories();
   engine.attemptLinks();
 
+  console.log("Engine initialized. Sample State:", JSON.stringify(engine.serialise()).substring(0, 100));
+
   engine.__id = Math.random();
   console.log("ENGINE ID:", engine.__id);
 
 setInterval(() => {
     engine.nextTurn();
     io.emit("game-state", engine.serialise());
-}, 20000);
+}, 40000);
 
 io.on("connection", (socket) => {
   console.log("Client connected", socket.id);
 
+  // Send state immediately on connection
   socket.emit("game-state", engine.serialise());
 
-  socket.on("disconnect", () => {
-    console.log("Client disconnected", socket.id);
+  // ADD THIS: Listen for the manual request from your useEffect
+  socket.on("request-initial-state", () => {
+    console.log("Manual state request received from", socket.id);
+    socket.emit("game-state", engine.serialise());
   });
 
   socket.on("player-action", ({ action, payload }, callback) => {
-    const result = engine.applyAction(action, payload);
-    if (callback){
-      callback(result);
-    }
-    io.emit("game-state", engine.serialise());
+    // ... existing code
   });
-
 });
 
 

@@ -101,20 +101,17 @@ export default function MapGrid({ territories, players, currentPlayer, phase, up
                                 }
                                 let result = null
                                 socket.emit("player-action", { action: "attack", payload: { player, sourceTerritory, currTerritory } }, (response) => {
-                                    result = response
-                                });
-
-
-                                update(true);
-
-                                if (result?.result) {
-                                    if (result.troops > 0) {
-                                        setValidAmount(result.troops);
-                                        setCurrTerritory(currTerritory);
-                                        setAttackSource(sourceTerritory);
-                                        setIsVisible(true);
+                                    update(true); 
+                                    
+                                    if (response?.result) {
+                                        if (response.troops > 0) {
+                                            setValidAmount(response.troops);
+                                            setCurrTerritory(currTerritory);
+                                            setAttackSource(sourceTerritory);
+                                            setIsVisible(true);
+                                        }
                                     }
-                                }
+                                })
 
                                 setSourceTerritory(null);
                                 return;
