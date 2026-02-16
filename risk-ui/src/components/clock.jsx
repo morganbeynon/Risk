@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
 
-export default function Clock({alarm}){
-    const [time, setTime] = useState(30);
+export default function Clock({endTime}){
+    const [time, setTime] = useState(0);
 
     useEffect(() => {
-        if (time == 0){
-            alarm?.();
-            return 
-        }
-        const timer = setInterval(() => {
-        setTime(s => s - 1)}, 1000);
+        const calculateTime = () => {
+            const now = Date.now();
+            const diff = Math.max(0, Math.ceil((endTime - now) / 1000));
+            setTime(diff);
+        };
+        calculateTime()
+
+        const timer = setInterval(calculateTime, 1000);
         return () => clearInterval(timer);
     }, [time]);
  
@@ -38,3 +40,9 @@ export default function Clock({alarm}){
         </div>
     );
 }
+
+// Node.js Foundation. 
+// "The Node.js Event Loop, Timers, and process.nextTick()."
+// Technical Detail: 
+// This explains how Node.js handles non-blocking I/O and why setTimeout 
+// is preferred over a busy-wait loop for game turns.

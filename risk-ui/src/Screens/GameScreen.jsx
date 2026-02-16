@@ -73,18 +73,8 @@ export default function GameScreen() {
                     >
                     <Components.TurnBar colour={gameState.players[gameState.turn].colour} />
                     <Components.Clock 
-                        key = {gameState.turn}
-                        alarm ={() => {
-                        if (winner){
-                            return
-                        }
-                        socket.emit("player-action", {
-                                action: "nextTurn",
-                                payload: {}
-                        }); 
-                        setDeployed(false);       
-                        rerender();
-                    }} />
+                        endTime={gameState.turnEndTime}
+                    />
                 </div>
 
                 <div
