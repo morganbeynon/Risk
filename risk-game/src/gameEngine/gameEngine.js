@@ -83,7 +83,8 @@ class GameEngine{
                 }   
                 return this.attack(parameters.player, parameters.territory, parameters.selectedTerritory)
             case "getConnectingTerritories":
-                return this.getConnectingTerritories(parameters.x, parameters.y);
+                const neighborsSet = this.getConnectingTerritories(parameters.x, parameters.y);
+                return Array.from(neighborsSet);
             case "deploy":
                 if (!parameters.player || !parameters.territory || parameters.amount <= 0) {
                     throw new Error("Invalid deploy parameters");
@@ -171,7 +172,13 @@ class GameEngine{
         return this.getPhase()
     }
 
-    deploy(player, territory, amount){
+    deploy(playerD, territoryD, amount){
+        const player = this.players.find(p => p.id === playerD.id);
+        const territory = this.territories.find(t => t.id === territoryD.id);
+        if (!player || !territory) {
+            console.error("Deploy failed: Player or Territory not found in engine");
+            return false;
+        }
         let numAmount = Number(amount)
         if (territory.owner == player.id && !isNaN(numAmount)){
             territory.troopCount += numAmount
@@ -184,7 +191,10 @@ class GameEngine{
         }
     }
 
-   attack(player, territory, selectedTerritory) {
+   attack(playerD, territoryD, selectedTerritoryD) {
+        const player = this.players.find(p => p.id === playerD.id);
+        const territory = this.territories.find(t => t.id === territoryD.id);
+        const selectedTerritory = this.territories.find(t => t.id === selectedTerritoryD.id);
         if (!territory || !selectedTerritory){
              return;
         }
@@ -269,17 +279,23 @@ class GameEngine{
 
     }
 
-    moveAfterAttack(sourceTerr, moveTerr, amount){
+    moveAfterAttack(sourceTerrD, moveTerrD, amount){
+        const sourceTerr = this.territories.find(t => t.id === sourceTerrD.id);
+        const moveTerr = this.territories.find(t => t.id === moveTerrD.id);
         sourceTerr.troopCount -= amount;
         moveTerr.troopCount += amount;
     }
 
-    fortify(player, territory, selectedTerritory, amount){
+    fortify(playerD, territoryD, selectedTerrD, amount){
+        const player = this.players.find(p => p.id === playerD.id);
+        const territory = this.territories.find(t => t.id === territoryD.id);
+        const selectedTerritory = this.territories.find(t => t.id === selectedTerrD.id);
+        const numAmount = Number(amount);
         if(this.checkAdjacency(territory,selectedTerritory, "Reinforce")){ 
             if(amount < territory.troopCount){
                 if (selectedTerritory.owner == territory.owner){
-                selectedTerritory.troopCount += amount
-                territory.troopCount -= amount
+                selectedTerritory.troopCount += numAmount
+                territory.troopCount -= numAmount
                 }
                 else{
                     return { error: "INVALID_ATTACK_NOT_OWNED" };
@@ -413,7 +429,10 @@ class GameEngine{
         return {checkOut, cardValues, removeCards}
     }
 
-    redeemCards(player){
+    redeemCards(playerD){
+        const player = this.players.find(p => p.id === playerD.id);
+        if (!player) return false;
+
         const {checkOut, cardValues, removeCards} = this.checkCards(player);
         if (checkOut === false){
             return false;

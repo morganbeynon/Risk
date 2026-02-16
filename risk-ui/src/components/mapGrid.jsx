@@ -100,7 +100,7 @@ export default function MapGrid({ territories, players, currentPlayer, phase, up
                                     return;
                                 }
                                 let result = null
-                                socket.emit("player-action", { action: "attack", payload: { player, sourceTerritory, currTerritory } }, (response) => {
+                                socket.emit("player-action", { action: "attack", payload: { player, territory: sourceTerritory, selectedTerritory: currTerritory } }, (response) => {
                                     update(true); 
                                     
                                     if (response?.result) {
@@ -177,7 +177,7 @@ export default function MapGrid({ territories, players, currentPlayer, phase, up
 
 
                     if (phase === "Deploy" && currentTerritory) {
-                        socket.emit("player-action", { action: "deploy", payload: {player, currentTerritory, amount} })
+                        socket.emit("player-action", { action: "deploy", payload: {player, territory: currentTerritory, amount} })
     
                         update(true);
                         setIsVisible(false);
@@ -189,7 +189,7 @@ export default function MapGrid({ territories, players, currentPlayer, phase, up
                     else if (phase === "Reinforce" && sourceTerritories[0] && currentTerritory) {
                         
                         let fortTerr = sourceTerritories[0]
-                        socket.emit("player-action", { action: "fortify", payload: {player, fortTerr, currentTerritory, amount} })
+                        socket.emit("player-action", { action: "fortify", payload: {player, territory: fortTerr, selectedTerritory: currentTerritory, amount} })
     
                         update(true);
                         setSourceTerritories([]);
@@ -204,7 +204,7 @@ export default function MapGrid({ territories, players, currentPlayer, phase, up
                             return;
                         } 
 
-                        socket.emit("player-action", { action: "moveAfterAttack", payload: {attackSource, currentTerritory, amount} })
+                        socket.emit("player-action", { action: "moveAfterAttack", payload: {sourceTerr: attackSource, moveTerr: currentTerritory, amount} })
     
                         update(true);
                         setAttackSource(null);

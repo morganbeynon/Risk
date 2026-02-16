@@ -17,14 +17,15 @@ export default function cardPopUp({onConfirm, colour, visible, value, checkout, 
         if (checkout){
             const troops = Number(value);
             if (Number.isNaN(troops)){
-                console.log("returned")
+                console.log("returned troops")
                 return;
             } 
-            socket.emit("player-action", { action: "redeemPlayer", payload: {player} });
+            socket.emit("player-action", { action: "redeemCards", payload: {player} });
             onConfirm();
 
         }
         else{
+            console.log("failed checkout")
             return
         }
     };
@@ -67,7 +68,7 @@ export default function cardPopUp({onConfirm, colour, visible, value, checkout, 
             <div
             style= {{
                 width: 600,
-                height: 400,
+                height: 500,
                 position: "relative",
                 display: "flex",
                 flexDirection: "column",

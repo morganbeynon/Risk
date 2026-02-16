@@ -138,14 +138,18 @@ export default function GameScreen() {
                         
                         const currentPlayer = gameState.players[gameState.turn];
 
-                        if (gameState.phases[gameState.phaseNumber] === "Deploy") {
+                        if (phase === "Deploy") {
                             if (currentPlayer.deployableTroops === 0) {
-                                socket.emit("player-action", { action: "nextTurn", payload: {} });
+                                socket.emit("player-action", { action: "nextPhase", payload: {} });
                                 setDeployed(false);
                             } else {
                                 alert(`Please deploy all available troops. (${currentPlayer.deployableTroops} remaining)`);
                             }
-                        } else {
+                        } 
+                        else if (phase == "Reinforce"){
+                            socket.emit("player-action", { action: "nextTurn", payload: {} });
+                        }
+                        else{
                             socket.emit("player-action", { action: "nextPhase", payload: {} });
                         }
                     }}

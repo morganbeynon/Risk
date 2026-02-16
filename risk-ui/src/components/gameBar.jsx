@@ -13,8 +13,8 @@ export default function GameBar({player, phase}) {
     
     const [showCards, setShowCards] = React.useState(false);
     const [cardState, setCardState] = useState(null);
-    let results = null;
 
+    let results = cardState;
 
     let text = "";
     if (phase === 'Deploy') {
@@ -77,7 +77,7 @@ export default function GameBar({player, phase}) {
                 visible={showCards}
                 colour={player.colour}
                 onConfirm={() => setShowCards(false)}
-                value = {results?.value}
+                value = {results?.cardValues}
                 checkout = {results?.checkOut}
                 removeCards = {results?.removeCards}
                 player = {player}

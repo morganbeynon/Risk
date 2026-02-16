@@ -30,7 +30,7 @@ const players = [
 setInterval(() => {
     engine.nextTurn();
     io.emit("game-state", engine.serialise());
-}, 40000);
+}, 30000);
 
 io.on("connection", (socket) => {
   console.log("Client connected", socket.id);
@@ -45,7 +45,22 @@ io.on("connection", (socket) => {
   });
 
   socket.on("player-action", ({ action, payload }, callback) => {
-    // ... existing code
+    try {
+        console.log(`Action received: ${action}`);
+        
+        // 1. Apply the action to the engine
+        const result = engine.applyAction(action, payload);
+        
+        // 2. If the client expects a callback (like in attack), return it
+        if (callback) callback(result);
+
+        // 3. CRITICAL: Broadcast the UPDATED engine state to ALL clients
+        // This triggers the React useEffect to update the UI
+        io.emit("game-state", engine.serialise());
+        
+    } catch (error) {
+        console.error("Action error:", error);
+    }
   });
 });
 
