@@ -33,12 +33,12 @@ export default function MapGrid({ territories, players, currentPlayer, phase, up
                 const currTerritory = territories.find(t => t.row === x && t.col === y)
 
                 let troopCount = null;
-                let cellColour = "blue";
+                let cellColour = "#1a2a6c" ;
 
                 if (currTerritory) {
                     if (currTerritory.owner !== null && currTerritory.owner !== undefined) {
                         const cellPlayer = players.find(p => p.id === currTerritory.owner);
-                        cellColour = cellPlayer?.colour ?? "blue";
+                        cellColour = cellPlayer?.colour ??"#1a2a6c",
                         troopCount = currTerritory.troopCount;
                     }
 

@@ -3,26 +3,14 @@
 const http = require("http");
 const { Server } = require("socket.io");
 const { GameEngine, Player } = require("../risk-game");
-
+const colours = ['red', 'green', 'yellow', 'pink', 'purple', 'orange']
 const server = http.createServer();
 const io = new Server(server, {
   cors: { origin: "*" }
 });
-
-const players = [
-    new Player("Player 1", [], 0, 0, 0, 3, [], "red", false),
-    new Player("Player 2", [], 0, 0, 0, 3, [], "green", false),
-];
-
-const engine = new GameEngine(players, [], 0, 0);
-engine.createTerritories();
-engine.assignTerritories();
-engine.attemptLinks();
-
-console.log("Engine initialized. Sample State:", JSON.stringify(engine.serialise()).substring(0, 100));
-
-engine.__id = Math.random();
-console.log("ENGINE ID:", engine.__id);
+let lobbyPlayers = []
+let playingGame = false
+let engine = null
 let timeout = null
 let turnEndTime = null
 let duration = 30000;
@@ -44,20 +32,74 @@ function sortTime(){
     }, duration);
 }
 
-turnEndTime = Date.now() + duration;
-sortTime()
-
 io.on("connection", (socket) => {
     console.log("Client connected", socket.id);
 
-    socket.emit("game-state", { ...engine.serialise(), turnEndTime });
+    socket.on("player-joined", (name) => {
+        if (playingGame){
+            socket.emit("error", "Game in progress");
+            return
+        }
+        if (lobbyPlayers.length >= 6) {
+            socket.emit("error", "Lobby is full");
+            return;
+        }
+
+        const newPlayer = { socketId: socket.id, name: name };
+        lobbyPlayers.push(newPlayer);
+        io.emit("lobby-update", lobbyPlayers);
+    });
+
+    socket.on("start-game", () => {
+        if (lobbyPlayers.length < 2){
+            return;
+        } 
+        if (lobbyPlayers[0].socketId !== socket.id){
+            return;
+        } 
+
+        const enginePlayers = lobbyPlayers.map((p, index) => 
+            new Player(p.socketId, [], 0, 0, 0, 3, [], colours[index], false)
+        );
+        
+        
+        enginePlayers.forEach((p, i) => {
+            socketToPlayerMap[p.id] = i;
+        });
+
+        // Initialize Engine
+        // Note: You might need to update your GameEngine constructor to accept the new players array
+        engine = new GameEngine(enginePlayers, [], 0, 0); 
+        engine.createTerritories();
+        engine.assignTerritories();
+        engine.attemptLinks();
+        engine.id = Math.random()
+        console.log(engine.id)
+        playingGame = true;
+   
+        turnEndTime = Date.now() + duration;
+        sortTime()
+        io.emit("game-start", { ...engine.serialise(), turnEndTime });
+    });
+
+    socket.emit("lobby-update", lobbyPlayers);
+
 
     socket.on("request-initial-state", () => {
         socket.emit("game-state", { ...engine.serialise(), turnEndTime });
     });
 
     socket.on("player-action", ({ action, payload }, callback) => {
+        if (!playingGame){
+            socket.emit("error", "Game is not playing");
+            return
+        }
         try {
+            const currentPlayer = engine.players[engine.turn];
+            if (socket.id !== currentPlayer.id) {
+                socket.emit("unuathorised move");
+                return; 
+            }
             let oldTurn = engine.turn; 
             console.log(`Action received: ${action}`);
             const result = engine.applyAction(action, payload);
@@ -74,6 +116,16 @@ io.on("connection", (socket) => {
             
         } catch (error) {
             console.error("Action error:", error);
+        }
+    });
+
+    socket.on("disconnect", () => {
+        lobbyPlayers = lobbyPlayers.filter(p => p.socketId !== socket.id);
+        if (gameActive) {
+            gameActive = false;
+            io.emit("game-over", "Player disconnected");
+        } else {
+            io.emit("lobby-update", lobbyPlayers);
         }
     });
 });

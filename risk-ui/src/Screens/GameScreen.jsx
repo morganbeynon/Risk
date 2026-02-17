@@ -58,7 +58,7 @@ export default function GameScreen() {
                     height: "100vh",
                     display: "flex",
                     flexDirection: "column",
-                    background: "blue",
+                    background: "#1a2a6c",
                     overflow: "hidden",
                     alignItems: "center",
                 }}
