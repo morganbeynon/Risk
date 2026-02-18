@@ -14,8 +14,7 @@ let engine = null
 let timeout = null
 let turnEndTime = null
 let duration = 30000;
-
-
+let socketToPlayerMap = {};
 function sortTime(){
   if (timeout){
     clearTimeout(timeout)
@@ -34,7 +33,6 @@ function sortTime(){
 
 io.on("connection", (socket) => {
     console.log("Client connected", socket.id);
-
     socket.on("player-joined", (name) => {
         if (playingGame){
             socket.emit("error", "Game in progress");
@@ -59,7 +57,7 @@ io.on("connection", (socket) => {
         } 
 
         const enginePlayers = lobbyPlayers.map((p, index) => 
-            new Player(p.socketId, [], 0, 0, 0, 3, [], colours[index], false)
+            new Player(p.name, [], 0, 0, 0, 3, [], colours[index], false)
         );
         
         
@@ -67,8 +65,6 @@ io.on("connection", (socket) => {
             socketToPlayerMap[p.id] = i;
         });
 
-        // Initialize Engine
-        // Note: You might need to update your GameEngine constructor to accept the new players array
         engine = new GameEngine(enginePlayers, [], 0, 0); 
         engine.createTerritories();
         engine.assignTerritories();
@@ -78,8 +74,8 @@ io.on("connection", (socket) => {
         playingGame = true;
    
         turnEndTime = Date.now() + duration;
-        sortTime()
         io.emit("game-start", { ...engine.serialise(), turnEndTime });
+        sortTime()
     });
 
     socket.emit("lobby-update", lobbyPlayers);
@@ -96,7 +92,9 @@ io.on("connection", (socket) => {
         }
         try {
             const currentPlayer = engine.players[engine.turn];
-            if (socket.id !== currentPlayer.id) {
+            const lobbyPlayer = lobbyPlayers.find(p => p.socketId === socket.id);
+            if (!lobbyPlayer || lobbyPlayer.name !== currentPlayer.id) {
+                console.log("improper")
                 socket.emit("unuathorised move");
                 return; 
             }
@@ -121,8 +119,8 @@ io.on("connection", (socket) => {
 
     socket.on("disconnect", () => {
         lobbyPlayers = lobbyPlayers.filter(p => p.socketId !== socket.id);
-        if (gameActive) {
-            gameActive = false;
+        if (playingGame) {
+            playingGame = false;
             io.emit("game-over", "Player disconnected");
         } else {
             io.emit("lobby-update", lobbyPlayers);

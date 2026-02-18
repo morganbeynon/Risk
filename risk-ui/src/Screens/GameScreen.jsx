@@ -16,6 +16,11 @@ export default function GameScreen() {
     const [phase, setPhase] = useState(null);
 
     useEffect(() => {
+        socket.on("game-state", (state) => {
+            setGameState(state);
+        });
+
+
         socket.on("connect", () => {
             console.log("Socket Connected! ID:", socket.id);
         });
@@ -50,7 +55,7 @@ export default function GameScreen() {
     }, [gameState]);
 
 
-    if (!gameState) return <div>Loading...</div>;
+    if (!gameState) return <div>Loading Game...</div>;
     return(
             <div
                 style={{

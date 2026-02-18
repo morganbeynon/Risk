@@ -3,7 +3,7 @@ import socket from '../socket';
 import { useNavigate } from "react-router-dom";
 
 export default function LobbyScreen({ onGameStart }) {
-    const navigation = useNavigate();
+    const navigate = useNavigate();
     const [name, setName] = useState("");
     const [joined, setJoined] = useState(false);
     const [lobby, setLobby] = useState([]);
@@ -46,14 +46,14 @@ export default function LobbyScreen({ onGameStart }) {
 
         socket.on("game-start", (initialState) => {
             onGameStart(initialState);
-            navigation.navigate('/GameScreen');
+            navigate('/GameScreen');
         });
 
         return () => {
             socket.off("lobby-update");
             socket.off("game-start");
         };
-    }, [onGameStart, navigation]); 
+    }, [onGameStart, navigate]); 
 
     return (
         <div style={{
