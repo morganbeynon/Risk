@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import socket from '../socket';
 import { useNavigate } from "react-router-dom";
 
-export default function LobbyScreen({ onGameStart }) {
+export default function LobbyScreen({ setScreenPlayer, onGameStart }) {
     const navigate = useNavigate();
     const [name, setName] = useState("");
     const [joined, setJoined] = useState(false);
@@ -22,6 +22,7 @@ export default function LobbyScreen({ onGameStart }) {
     const join = () => {
         if (name.trim()) {
             socket.emit("player-joined", name);
+            setScreenPlayer(name);
             setJoined(true);
         }
     }

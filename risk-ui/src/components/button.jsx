@@ -1,8 +1,18 @@
 import React, {forwardRef, useState, useEffect } from "react";
 
-export default function Button({colour, onClick}){
+export default function Button({visible, colour, onClick}){
     const bHeight = 50
     const bWidth = 100
+    let cursor = ""
+    let visibility = ""
+    if (visible){
+        cursor = "pointer"
+        visibility = "visible"
+    }
+    else{
+        cursor = "not-allowed"
+        visibility = "hidden"
+    }
     return(
         <button
             onClick={onClick}
@@ -19,6 +29,8 @@ export default function Button({colour, onClick}){
                 alignItems: "center",
                 justifyContent: "center",
                 fontSize: 16,
+                cursor: cursor,
+                visibility: visibility
             }}   
         >
                 {"Next Phase"}

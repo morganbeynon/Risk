@@ -82,8 +82,14 @@ io.on("connection", (socket) => {
 
 
     socket.on("request-initial-state", () => {
-        socket.emit("game-state", { ...engine.serialise(), turnEndTime });
-    });
+        if (engine) {
+            socket.emit("game-state", { ...engine.serialise(), turnEndTime });
+        } 
+        else {
+            console.log("no engine exists yet.");
+            socket.emit("error", "No game in progress");
+        }
+    })
 
     socket.on("player-action", ({ action, payload }, callback) => {
         if (!playingGame){

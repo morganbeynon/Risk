@@ -1,7 +1,15 @@
-export default function TurnBar({colour}){
+export default function TurnBar({currentPlayer, colour, screenPlayer}){
     const tHeight = 50;
     const tWidth = 200;
-
+    let text = ""
+    console.log(currentPlayer.id)
+    if (currentPlayer.id == screenPlayer){
+        text = "Your Turn"
+    }
+    else{
+        text = `${currentPlayer.id}'s Turn`
+        
+    }
     return (
         <div
             style={{
@@ -16,7 +24,7 @@ export default function TurnBar({colour}){
                 color: "black"
             }}
         >
-            Your Turn
+            {text}
         </div>
     );
 }

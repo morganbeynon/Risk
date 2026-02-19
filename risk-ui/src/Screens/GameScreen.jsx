@@ -6,7 +6,7 @@ import socket from '../socket'
 
 
 
-export default function GameScreen() {
+export default function GameScreen({screenPlayer}) {
 
     const [tick, setTick] = useState(0);
     const [deployed, setDeployed] = useState(false);
@@ -14,6 +14,7 @@ export default function GameScreen() {
     const rerender = () => setTick(t => t + 1);
     const [gameState, setGameState] = useState(null);
     const [phase, setPhase] = useState(null);
+    let myTurn = false
 
     useEffect(() => {
         socket.on("game-state", (state) => {
@@ -55,7 +56,12 @@ export default function GameScreen() {
     }, [gameState]);
 
 
-    if (!gameState) return <div>Loading Game...</div>;
+    if (!gameState){
+        return <div>Loading Game...</div>
+    }
+    else{
+        myTurn = screenPlayer === gameState.players[gameState.turn].id;
+    }
     return(
             <div
                 style={{
@@ -76,7 +82,7 @@ export default function GameScreen() {
                         marginBottom: "12px",
                     }}
                     >
-                    <Components.TurnBar colour={gameState.players[gameState.turn].colour} />
+                    <Components.TurnBar currentPlayer={gameState.players[gameState.turn]} colour={gameState.players[gameState.turn].colour} screenPlayer = {screenPlayer}/>
                     <Components.Clock 
                         endTime={gameState.turnEndTime}
                     />
@@ -127,6 +133,7 @@ export default function GameScreen() {
                     />
                 </div> 
                 <Components.Button
+                    visible={myTurn}
                     colour={gameState.players[gameState.turn].colour}
                     onClick={() => {
                         if (winner) return;
