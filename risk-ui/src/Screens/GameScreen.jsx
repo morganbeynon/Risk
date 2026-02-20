@@ -106,6 +106,7 @@ export default function GameScreen({screenPlayer}) {
                         justifyContent: "center",
                     }}>
                         <MapGrid
+                            myTurn = {myTurn}
                             territories={gameState.territories}
                             players={gameState.players}
                             currentPlayer={gameState.players[gameState.turn]}
@@ -128,6 +129,7 @@ export default function GameScreen({screenPlayer}) {
                 </div>
                 <div style={{ marginBottom: "8px" }}>
                     <Components.GameBar
+                        myTurn ={myTurn}
                         player={gameState.players[gameState.turn]}
                         phase={gameState.phase}
                     />

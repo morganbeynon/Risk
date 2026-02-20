@@ -6,7 +6,7 @@ import socket from '../socket';
 
 
 
-export default function GameBar({player, phase}) {
+export default function GameBar({myTurn, player, phase}) {
     const barWidth = 300;
     const barHeight = 50;
     const colour = player.colour;
@@ -26,6 +26,9 @@ export default function GameBar({player, phase}) {
     }
 
     const openCards = () => {
+        if (!myTurn){
+            return
+        }
         socket.emit("player-action", { action: "checkCards", payload: { player } }, (response) => {
             setCardState(response);
         });

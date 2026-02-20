@@ -3,7 +3,7 @@ import TerritoryCell from './territoryCell';
 import TroopInput from './troopInput';
 import socket from '../socket'
 
-export default function MapGrid({ territories, players, currentPlayer, phase, update, render}) {
+export default function MapGrid({myTurn, territories, players, currentPlayer, phase, update, render}) {
     const rows = 6;
     const cols = 6;
     const player = currentPlayer
@@ -64,7 +64,9 @@ export default function MapGrid({ territories, players, currentPlayer, phase, up
                         direction={currTerritory.linkDirection}
                         isLink={currTerritory.isLink}
                         onClick={() => {
-
+                            if (!myTurn){
+                                return
+                            }
                             if (phase === "Deploy") {
                                 setReinforced(false);
                                 if (player.deployableTroops <= 0) {
