@@ -57,7 +57,7 @@ io.on("connection", (socket) => {
         } 
 
         const enginePlayers = lobbyPlayers.map((p, index) => 
-            new Player(p.name, [], 0, 0, 0, 3, [], colours[index], false)
+            new Player(p.name, p.socketId, [], 0, 0, 0, 3, [], colours[index], false)
         );
         
         
@@ -124,12 +124,19 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnect", () => {
+        if (!engine){
+            return
+        }
+        let lostPlayer = engine.players.find(p => p.socketId === socket.id)
         lobbyPlayers = lobbyPlayers.filter(p => p.socketId !== socket.id);
-        if (playingGame) {
-            playingGame = false;
-            io.emit("game-over", "Player disconnected");
-        } else {
-            io.emit("lobby-update", lobbyPlayers);
+        if (!lostPlayer) {
+            console.log("cant find lost player")
+            return;
+        }
+        lostPlayer.territories = []
+        io.emit("lobby-update", lobbyPlayers);
+        if (engine.getCurrentPlayer().socketId === socket.id) {
+            engine.nextTurn();
         }
     });
 });
