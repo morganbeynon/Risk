@@ -127,6 +127,22 @@ io.on("connection", (socket) => {
         if (!engine){
             return
         }
+        if (engine.players.length < 3){
+
+            if (timeout) {
+                clearTimeout(timeout);
+                timeout = null;
+            }
+
+            io.emit("game-ended", { 
+                message: "Player disconnected. Insufficient players: stopping game"
+            });
+
+            playingGame = false;
+            engine = null;
+            socketToPlayerMap = {}
+            return;
+        }
         let lostPlayer = engine.players.find(p => p.socketId === socket.id)
         lobbyPlayers = lobbyPlayers.filter(p => p.socketId !== socket.id);
         if (!lostPlayer) {
@@ -137,6 +153,7 @@ io.on("connection", (socket) => {
         io.emit("lobby-update", lobbyPlayers);
         if (engine.getCurrentPlayer().socketId === socket.id) {
             engine.nextTurn();
+            sortTime()
         }
     });
 });

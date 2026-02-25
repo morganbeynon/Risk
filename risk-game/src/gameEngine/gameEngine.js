@@ -6,6 +6,7 @@ let linkRoutes = []
 class Player{
     constructor(id, socketId, territories = [], totalTroops, turnNumber, placedTroops, deployableTroops, cards = [], colour, recievedCard){
         this.id = id
+        this.socketId = socketId
         this.territories = territories
         this.totalTroops = totalTroops
         this.turnNumber = turnNumber
