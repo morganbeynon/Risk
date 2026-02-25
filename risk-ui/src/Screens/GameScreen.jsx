@@ -72,6 +72,8 @@ export default function GameScreen({screenPlayer}) {
                     background: "#1a2a6c",
                     overflow: "hidden",
                     alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px",                
                 }}
             >
                 <div
@@ -79,7 +81,6 @@ export default function GameScreen({screenPlayer}) {
                         display: "flex",
                         alignItems: "center",
                         gap: "12px",
-                        marginBottom: "12px",
                     }}
                     >
                     <Components.TurnBar currentPlayer={gameState.players[gameState.turn]} colour={gameState.players[gameState.turn].colour} screenPlayer = {screenPlayer}/>
@@ -94,8 +95,9 @@ export default function GameScreen({screenPlayer}) {
                     flexDirection: "row",
                     alignItems: "center",
                     justifyContent: "center",
-                    gap: "10px",
-                    height: "500px"
+                    gap: "10px", 
+                    flex: 1,
+                    maxHeight: "60vh",
                 }}
                 >
                     <div style={{
@@ -127,7 +129,7 @@ export default function GameScreen({screenPlayer}) {
                         <Components.ProfileStack playerList={gameState.players} />
                         </div>
                 </div>
-                <div style={{ marginBottom: "8px" }}>
+                <div style={{}}>
                     <Components.GameBar
                         myTurn ={myTurn}
                         player={gameState.players[gameState.turn]}
