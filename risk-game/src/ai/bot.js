@@ -10,7 +10,7 @@ const Bot= {
             this.calcDeploy(engine, bot, territories)
         }
         else if (phase == "Attack"){
-
+            this.calcAttack(engine, bot, territories)
         }
         else if (phase == "Reinforce"){
             this.calcReinforce(engine,bot, territories)
@@ -28,7 +28,7 @@ const Bot= {
                     break
                 } 
             }
-            if (!potentialTerr && !surrounded|| terr.troopCount < potentialTerr){
+            if (!potentialTerr && !surrounded|| terr.troopCount < potentialTerr.troopCount){
                 potentialTerr = terr
             }
 
@@ -41,9 +41,8 @@ const Bot= {
                 action: "deploy",
                 payload: {
                     player: bot,
-                    territory: fromTerr,       
-                    selectedTerritory: toTerr,  
-                    amount: fromTerr.troopCount - 1 
+                    territory: potentialTerr,         
+                    amount: bot.deployableTroops 
                 }
             };
     },
@@ -52,14 +51,32 @@ const Bot= {
         let borderTerr = []
         let toTerr = null
         let fromTerr = null
+        let difference = 0
         for (const terr of bot.territories){
-            for (neigh in terr.adjacent){
-                const neighbour = engine.territories.find(t => t.id === neighID);
-                if (neighbour.owner != bot.id){
-                    borderTerr.append(neighbour)
-                } 
+            if (terr.troopCount > 1){
+                for (let neigh of terr.adjacent){
+                    let neighbour = engine.territories.find(t => t.id === neigh.id);
+                    if (neighbour.owner != bot.id){
+                        if (terr.troopCount - neighbour.troopCount > neighbour.difference){
+                            toTerr = neighbour
+                            fromTerr = terr
+                            difference = terr.troopCount - neighbour.troopCount
+                        }
+                    } 
+                }
             }
         }
+        if (toTerr == null || fromTerr == null || difference == 0){
+            return{action: "nextPhase", payload: {}}
+        }
+        return {
+                action: "attack",
+                payload: {
+                    player: bot,
+                    territory: fromTerr,       
+                    selectedTerritory: toTerr 
+                }
+        };
         
     },
 
