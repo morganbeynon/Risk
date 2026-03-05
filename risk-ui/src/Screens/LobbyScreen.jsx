@@ -34,6 +34,9 @@ export default function LobbyScreen({ setScreenPlayer, onGameStart }) {
         }
     };
 
+    const addBot = () => {
+        socket.emit("add-bot");
+    }
     useEffect(() => {
         socket.on("lobby-update", (players) => {
             setLobby(players);
@@ -118,6 +121,24 @@ export default function LobbyScreen({ setScreenPlayer, onGameStart }) {
                             : "Waiting for host to start..."}
                     </p>
 
+                    {isHost && (
+                        <button
+                            style={{
+                                background: "black",
+                                border: "black",
+                                padding: "15px 30px",
+                                fontSize: "20px",
+                                fontWeight: "bold",
+                                color: "white",
+                                borderRadius: "10px",
+                                marginTop: "20px"
+                            }}
+                            onClick={addBot}
+                        >
+                            Add Bot
+                        </button>
+                    )}
+                    
                     {isHost && (
                         <button
                             style={{

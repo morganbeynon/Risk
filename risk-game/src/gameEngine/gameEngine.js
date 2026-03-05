@@ -4,7 +4,7 @@ const colours = ['red', 'green', 'yellow', 'pink', 'purple', 'orange']
 
 
 class Player{
-    constructor(id, socketId, territories = [], totalTroops, turnNumber, placedTroops, deployableTroops, cards = [], colour, recievedCard){
+    constructor(id, socketId, territories = [], totalTroops, turnNumber, placedTroops, deployableTroops, cards = [], colour, recievedCard, isBot){
         this.id = id
         this.socketId = socketId
         this.territories = territories
@@ -15,6 +15,7 @@ class Player{
         this.cards = cards
         this.colour = colour
         this.recievedCard = recievedCard
+        this.isBot = isBot
     }
 }
 

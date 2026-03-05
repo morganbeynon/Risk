@@ -3,6 +3,7 @@
 const http = require("http");
 const { Server } = require("socket.io");
 const { GameEngine, Player } = require("../risk-game");
+const { Bot } = require("../risk-game/src/ai/bot");
 const colours = ['red', 'green', 'yellow', 'pink', 'purple', 'orange']
 const server = http.createServer();
 const io = new Server(server, {
@@ -31,6 +32,30 @@ function sortTime(){
     }, duration);
 }
 
+function botTurn(){
+    if (!playingGame || !engine){
+        return
+    }
+    const currentPlayer = engine.getCurrentPlayer()
+    if (!currentPlayer || currentPlayer.isBot == false){
+        return
+    }
+
+    const move = Bot.chooseAction(engine, currentPlayer)
+    if (!move){
+        return
+    }
+    engine.applyAction(move.action, move.payload)
+    io.emit("game-state", { ...engine.serialise(), turnEndTime });
+    
+    if (engine.turn === engine.players.indexOf(currentPlayer)) {
+        setTimeout(executeBotTurn, 1000); 
+    }
+    else {
+        sortTime();
+    }
+    
+}
 io.on("connection", (socket) => {
     console.log("Client connected", socket.id);
     socket.on("player-joined", (name) => {
@@ -57,7 +82,7 @@ io.on("connection", (socket) => {
         } 
 
         const enginePlayers = lobbyPlayers.map((p, index) => 
-            new Player(p.name, p.socketId, [], 0, 0, 0, 3, [], colours[index], false)
+            new Player(p.name, p.socketId, [], 0, 0, 0, 3, [], colours[index], false,p.isBot || false)
         );
         
         
@@ -155,6 +180,16 @@ io.on("connection", (socket) => {
             engine.nextTurn();
             sortTime()
         }
+    });
+
+    socket.on("add-bot", () => {
+        if (lobbyPlayers.length >= 6){
+            return;
+        }
+        const random = Math.floor(Math.random() * 100)
+        const botName = `Bot_${random}`;
+        lobbyPlayers.push({ socketId: `bot_${random}`, name: botName, isBot: true });
+        io.emit("lobby-update", lobbyPlayers);
     });
 });
 

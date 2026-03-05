@@ -1,11 +1,12 @@
-import { GameEngine } from "../gameEngine/gameEngine"
+import { GameEngine } from "../gameEngine/gameEngine.js"
 
 const Bot= {
     chooseAction(engine, bot){
         const id = bot.id
         const territoriesID = bot.territories
-        const territories = territories.map(
+        const territories = territoriesID.map(
             id => engine.territories.find(t => t.id === id))
+        const phase = engine.getPhase()
         if (phase == "Deploy"){
             this.calcDeploy(engine, bot, territories)
         }
@@ -22,7 +23,7 @@ const Bot= {
         let surrounded = true
         for (const terr of bot.territories){
             for (neigh in terr.adjacent){
-                const neighbour = engine.territories.find(t => t.id === neighID);
+                const neighbour = engine.territories.find(t => t.id === neigh.id);
                 if (neighbour.owner != bot.id){
                     surrounded = false
                     break
@@ -86,7 +87,7 @@ const Bot= {
         let surrounded = true
         for (const terr of territories){
             for (neigh in terr.adjacent){
-                const neighbour = engine.territories.find(t => t.id === neighID);
+                const neighbour = engine.territories.find(t => t.id === neigh.id);
                 if (neighbour.owner != id){
                     surrounded = false
                     break
@@ -95,7 +96,7 @@ const Bot= {
             if (!toTerr && !surrounded || !surrounded && toTerr.troopCount > terr.troopCount){
                 toTerr = terr
             }
-            else if(!fromTerr && surrounded|| surrounded && fromTerr.troopCount . terr.troopCount){
+            else if(!fromTerr && surrounded|| surrounded && fromTerr.troopCount < terr.troopCount){
                 fromTerr = terr
             }
         }
