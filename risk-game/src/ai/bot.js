@@ -8,28 +8,36 @@ const Bot= {
             id => engine.territories.find(t => t.id === id))
         const phase = engine.getPhase()
         if (phase == "Deploy"){
-            this.calcDeploy(engine, bot, territories)
+            return this.calcDeploy(engine, bot, territories)
         }
         else if (phase == "Attack"){
-            this.calcAttack(engine, bot, territories)
+            return this.calcAttack(engine, bot, territories)
         }
         else if (phase == "Reinforce"){
-            this.calcReinforce(engine,bot, territories)
+            return this.calcReinforce(engine,bot, territories)
         }
 
     },
     calcDeploy(engine, bot, territories){
+        if (bot.deployableTroops <= 0) {
+            return { action: "nextPhase", payload: {} };
+        }
         let potentialTerr = null
-        let surrounded = true
-        for (const terr of bot.territories){
-            for (neigh in terr.adjacent){
-                const neighbour = engine.territories.find(t => t.id === neigh.id);
-                if (neighbour.owner != bot.id){
+        
+        for (const terr of territories){
+            let surrounded = true
+            for (const neigh of terr.adjacent){
+                const neighbour = engine.territories.find(t => t.id === neigh);
+                if (neighbour.owner != bot.id && neighbour.owner != null){
                     surrounded = false
                     break
                 } 
             }
-            if (!potentialTerr && !surrounded|| terr.troopCount < potentialTerr.troopCount){
+            
+            if (potentialTerr == null){
+                potentialTerr = terr
+            }
+            if (terr.troopCount < potentialTerr.troopCount && !surrounded){
                 potentialTerr = terr
             }
 
@@ -48,17 +56,17 @@ const Bot= {
             };
     },
 
-    calcAttack(){
+    calcAttack(engine, bot, territories){
         let borderTerr = []
         let toTerr = null
         let fromTerr = null
         let difference = 0
-        for (const terr of bot.territories){
+        for (const terr of territories){
             if (terr.troopCount > 1){
-                for (let neigh of terr.adjacent){
-                    let neighbour = engine.territories.find(t => t.id === neigh.id);
-                    if (neighbour.owner != bot.id){
-                        if (terr.troopCount - neighbour.troopCount > neighbour.difference){
+                for (const neigh of terr.adjacent){
+                    let neighbour = engine.territories.find(t => t.id === neigh);
+                    if (neighbour && neighbour.owner != bot.id && neighbour.owner != null){
+                        if (terr.troopCount - neighbour.troopCount > difference){
                             toTerr = neighbour
                             fromTerr = terr
                             difference = terr.troopCount - neighbour.troopCount
@@ -84,24 +92,28 @@ const Bot= {
     calcReinforce(engine, bot, territories){
         let toTerr = null
         let fromTerr =  null
-        let surrounded = true
         for (const terr of territories){
-            for (neigh in terr.adjacent){
-                const neighbour = engine.territories.find(t => t.id === neigh.id);
-                if (neighbour.owner != id){
+            let surrounded = true
+            for (const neigh of terr.adjacent){
+                const neighbour = engine.territories.find(t => t.id === neigh);
+                if (neighbour && neighbour.owner !== null && neighbour.owner !== bot.id){
                     surrounded = false
                     break
                 }
             }
-            if (!toTerr && !surrounded || !surrounded && toTerr.troopCount > terr.troopCount){
-                toTerr = terr
+            if (!surrounded){
+                if (!toTerr || toTerr.troopCount > terr.troopCount){
+                    toTerr = terr
+                }
             }
-            else if(!fromTerr && surrounded|| surrounded && fromTerr.troopCount < terr.troopCount){
-                fromTerr = terr
+            else{
+                if(!fromTerr|| fromTerr.troopCount < terr.troopCount){
+                    fromTerr = terr
+                }
             }
         }
 
-        if (toTerr && fromTerr && engine.checkAdjacency(fromTerr, toTerr, "Reinforce")){
+        if (toTerr && fromTerr && fromTerr.troopCount > 1 && engine.checkAdjacency(fromTerr, toTerr, "Reinforce")){
             return {
                 action: "fortify",
                 payload: {

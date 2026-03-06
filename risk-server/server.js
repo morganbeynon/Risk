@@ -26,6 +26,11 @@ function sortTime(){
 
   io.emit("game-state", { ...engine.serialise(), turnEndTime });
 
+  const currentPlayer = engine.getCurrentPlayer();
+  if (currentPlayer && currentPlayer.isBot) {
+      setTimeout(botTurn, 1000); 
+  }
+
   timeout = setTimeout(() => {
         engine.nextTurn();
         sortTime();
@@ -48,8 +53,14 @@ function botTurn(){
     engine.applyAction(move.action, move.payload)
     io.emit("game-state", { ...engine.serialise(), turnEndTime });
     
+    if (move.action === "fortify") {
+        engine.nextTurn();
+        sortTime();        
+        return;           
+    }
+
     if (engine.turn === engine.players.indexOf(currentPlayer)) {
-        setTimeout(executeBotTurn, 1000); 
+        setTimeout(botTurn, 1000); 
     }
     else {
         sortTime();
@@ -130,7 +141,12 @@ io.on("connection", (socket) => {
                 return; 
             }
             let oldTurn = engine.turn; 
-            console.log(`Action received: ${action}`);
+            let bot = "Human"
+            if (currentPlayer.isBot){
+                bot = "Bot"
+            }
+
+            console.log(`${bot} Action received: ${action}`);
             const result = engine.applyAction(action, payload);
             
             if (callback){
