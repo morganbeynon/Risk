@@ -50,7 +50,18 @@ function botTurn(){
     if (!move){
         return
     }
-    engine.applyAction(move.action, move.payload)
+    const result = engine.applyAction(move.action, move.payload)
+
+    if (move.action === "attack" && result && result.result === true) {
+        console.log(`Bot conquered territory! Moving ${result.troops} troops.`);
+        
+        engine.applyAction("moveAfterAttack", {
+            sourceTerr: move.payload.territory,
+            moveTerr: move.payload.selectedTerritory,
+            amount: result.troops
+        });
+    }
+
     io.emit("game-state", { ...engine.serialise(), turnEndTime });
     
     if (move.action === "fortify") {
@@ -58,6 +69,7 @@ function botTurn(){
         sortTime();        
         return;           
     }
+
 
     if (engine.turn === engine.players.indexOf(currentPlayer)) {
         setTimeout(botTurn, 1000); 
