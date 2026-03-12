@@ -45,7 +45,7 @@ function botTurn(){
     if (!currentPlayer || currentPlayer.isBot == false){
         return
     }
-
+    engine.redeemCards(currentPlayer)
     const move = Bot.chooseAction(engine, currentPlayer)
     if (!move){
         return
@@ -53,7 +53,7 @@ function botTurn(){
     const result = engine.applyAction(move.action, move.payload)
 
     if (move.action === "attack" && result && result.result === true) {
-        console.log(`Bot conquered territory! Moving ${result.troops} troops.`);
+        console.log(`Bot con nvbquered territory! Moving ${result.troops} troops.`);
         
         engine.applyAction("moveAfterAttack", {
             sourceTerr: move.payload.territory,

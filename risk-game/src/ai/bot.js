@@ -2,7 +2,7 @@ import { GameEngine } from "../gameEngine/gameEngine.js"
 
 const Bot= {
     chooseAction(engine, bot){
-        const id = bot.id
+        const id = bot.id 
         const territoriesID = bot.territories
         const territories = territoriesID.map(
             id => engine.territories.find(t => t.id === id))
@@ -92,27 +92,58 @@ const Bot= {
     calcReinforce(engine, bot, territories){
         let toTerr = null
         let fromTerr =  null
+        let borderTerrs = new Set()
+        let internalTerrs = new Set()
+        let greatestDiff = -Infinity
+        
         for (const terr of territories){
-            let surrounded = true
+            let isBorder = false
             for (const neigh of terr.adjacent){
                 const neighbour = engine.territories.find(t => t.id === neigh);
                 if (neighbour && neighbour.owner !== null && neighbour.owner !== bot.id){
-                    surrounded = false
-                    break
+                    isBorder = true;
+                    break;
                 }
+                
             }
-            if (!surrounded){
-                if (!toTerr || toTerr.troopCount > terr.troopCount){
-                    toTerr = terr
-                }
-            }
-            else{
-                if(!fromTerr|| fromTerr.troopCount < terr.troopCount){
-                    fromTerr = terr
-                }
+            if (isBorder) {
+                borderTerrs.add(terr); 
+            } else {
+                internalTerrs.add(terr);
             }
         }
+        if (!borderTerrs){
+            console.log("borderTerrs empty")
+        }
+        for (const borderTerr of borderTerrs){
+            if (!borderTerr || !borderTerr.adjacent){
+                console.log("Border terr not there")
+            }
+            for (const adjTerr of borderTerr.adjacent){
+                const adjacentTerr = engine.territories.find(t => t.id === adjTerr);
+                if (adjacentTerr && adjacentTerr.owner !== null && adjacentTerr.owner !== bot.id){
+                    let difference = adjacentTerr.troopCount - borderTerr.troopCount;
+                    if (difference > greatestDiff){
+                        toTerr = borderTerr
+                    }
+                }
+            }
+            
+        }
 
+        if (!toTerr) {
+            return { action: "nextPhase", payload: {} };
+        }
+
+        const connectedTerrs = engine.getConnectingTerritories(toTerr.row, toTerr.col)
+        let maxIValue = -Infinity
+        for (const internalTerr of internalTerrs) {
+            if (internalTerr && connectedTerrs.has(internalTerr.id) && internalTerr.troopCount > maxIValue) {
+                maxIValue = internalTerr.troopCount;
+                fromTerr = internalTerr;
+            }
+        }
+          
         if (toTerr && fromTerr && fromTerr.troopCount > 1 && engine.checkAdjacency(fromTerr, toTerr, "Reinforce")){
             return {
                 action: "fortify",
