@@ -23,25 +23,47 @@ const Bot= {
             return { action: "nextPhase", payload: {} };
         }
         let potentialTerr = null
+        let borderTerrs = new Set()
+        let greatestDiff = -Infinity
         
         for (const terr of territories){
-            let surrounded = true
-            for (const neigh of terr.adjacent){
+            let isBorder = false
+            let allNeighbourIds = [...terr.adjacent];
+            for (const [a, b] of engine.linkRoutes) {
+                if (a === terr.id) allNeighbourIds.push(b);
+                if (b === terr.id) allNeighbourIds.push(a);
+            } 
+            for (const neigh of allNeighbourIds){
                 const neighbour = engine.territories.find(t => t.id === neigh);
-                if (neighbour.owner != bot.id && neighbour.owner != null){
-                    surrounded = false
-                    break
-                } 
+                if (neighbour && neighbour.owner !== null && neighbour.owner !== bot.id){
+                    isBorder = true;
+                    break;
+                }
+                
+            }
+            if (isBorder) {
+                borderTerrs.add(terr); 
+            }
+        }
+        if (!borderTerrs){
+            console.log("borderTerrs empty")
+        }
+        for (const borderTerr of borderTerrs){
+            if (!borderTerr || !borderTerr.adjacent){
+                console.log("Border terr not there")
+            }
+            for (const adjTerr of borderTerr.adjacent){
+                const adjacentTerr = engine.territories.find(t => t.id === adjTerr);
+                if (adjacentTerr && adjacentTerr.owner !== null && adjacentTerr.owner !== bot.id){
+                    let difference = adjacentTerr.troopCount - borderTerr.troopCount;
+                    if (difference > greatestDiff){
+                        potentialTerr = borderTerr
+                        greatestDiff = difference
+                    }
+                }
             }
             
-            if (potentialTerr == null){
-                potentialTerr = terr
-            }
-            if (terr.troopCount < potentialTerr.troopCount && !surrounded){
-                potentialTerr = terr
-            }
-
-        }
+        }    
 
         if (!potentialTerr){
             potentialTerr = territories[0]
@@ -57,13 +79,18 @@ const Bot= {
     },
 
     calcAttack(engine, bot, territories){
-        let borderTerr = []
         let toTerr = null
         let fromTerr = null
         let difference = 0
         for (const terr of territories){
             if (terr.troopCount > 1){
-                for (const neigh of terr.adjacent){
+                let allNeighbourIds = [...terr.adjacent];
+                for (const [a, b] of engine.linkRoutes) {
+                    if (a === terr.id) allNeighbourIds.push(b);
+                    if (b === terr.id) allNeighbourIds.push(a);
+                } 
+
+                for (const neigh of allNeighbourIds){
                     let neighbour = engine.territories.find(t => t.id === neigh);
                     if (neighbour && neighbour.owner != bot.id && neighbour.owner != null){
                         if (terr.troopCount - neighbour.troopCount > difference){
@@ -98,7 +125,12 @@ const Bot= {
         
         for (const terr of territories){
             let isBorder = false
-            for (const neigh of terr.adjacent){
+            let allNeighbourIds = [...terr.adjacent];
+                for (const [a, b] of engine.linkRoutes) {
+                    if (a === terr.id) allNeighbourIds.push(b);
+                    if (b === terr.id) allNeighbourIds.push(a);
+                } 
+            for (const neigh of allNeighbourIds){
                 const neighbour = engine.territories.find(t => t.id === neigh);
                 if (neighbour && neighbour.owner !== null && neighbour.owner !== bot.id){
                     isBorder = true;
@@ -125,6 +157,7 @@ const Bot= {
                     let difference = adjacentTerr.troopCount - borderTerr.troopCount;
                     if (difference > greatestDiff){
                         toTerr = borderTerr
+                        greatestDiff = difference
                     }
                 }
             }
