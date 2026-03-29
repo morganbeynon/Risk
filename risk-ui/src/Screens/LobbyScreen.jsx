@@ -37,6 +37,10 @@ export default function LobbyScreen({ setScreenPlayer, onGameStart }) {
     const addBot = () => {
         socket.emit("add-bot");
     }
+
+    const getInstructions = () => {
+        navigate("/InstructionScreen")
+    }
     useEffect(() => {
         socket.on("lobby-update", (players) => {
             setLobby(players);
@@ -159,7 +163,24 @@ export default function LobbyScreen({ setScreenPlayer, onGameStart }) {
                             Begin Game
                         </button>
                     )}
+
+                        <button
+                            style={{
+                                background: "black",
+                                border: "black",
+                                padding: "15px 30px",
+                                fontSize: "20px",
+                                fontWeight: "bold",
+                                color: "white",
+                                borderRadius: "10px",
+                                marginTop: "20px"
+                            }}
+                            onClick={getInstructions}
+                        >
+                            How To Play
+                        </button>
                 </div>
+                
             )}
         </div>
     );

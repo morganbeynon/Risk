@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import LobbyScreen from './Screens/LobbyScreen';
 import GameScreen from './Screens/GameScreen';
+import InstructionScreen from './Screens/InstructionScreen';
 
 function App() {
   const [gameState, setGameState] = useState(null);
@@ -18,6 +19,11 @@ function App() {
         <Route 
           path="/GameScreen" 
           element={<GameScreen initialData={gameState} screenPlayer={screenPlayer} />} 
+        />
+
+      <Route 
+          path="/InstructionScreen" 
+          element={<InstructionScreen />}
         />
       </Routes>
     </BrowserRouter>
