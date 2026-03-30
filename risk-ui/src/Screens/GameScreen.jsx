@@ -86,6 +86,7 @@ export default function GameScreen({screenPlayer}) {
                     <Components.TurnBar currentPlayer={gameState.players[gameState.turn]} colour={gameState.players[gameState.turn].colour} screenPlayer = {screenPlayer}/>
                     <Components.Clock 
                         endTime={gameState.turnEndTime}
+                        winner={winner}
                     />
                 </div>
 

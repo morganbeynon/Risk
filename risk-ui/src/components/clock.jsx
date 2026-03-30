@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 
-export default function Clock({endTime}){
+export default function Clock({endTime, winner}){
     const [time, setTime] = useState(0);
 
     useEffect(() => {
+        if (winner) return;
         const calculateTime = () => {
             const now = Date.now();
             const diff = Math.max(0, Math.ceil((endTime - now) / 1000));

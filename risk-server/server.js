@@ -91,9 +91,13 @@ io.on("connection", (socket) => {
             return;
         }
 
-        const newPlayer = { socketId: socket.id, name: name };
-        lobbyPlayers.push(newPlayer);
-        io.emit("lobby-update", lobbyPlayers);
+        const existing = lobbyPlayers.findIndex(p => p.socketId === socket.id);
+    if (existing !== -1) {
+        lobbyPlayers[existing].name = name; // update in place
+    } else {
+        lobbyPlayers.push({ socketId: socket.id, name });
+    }
+    io.emit("lobby-update", lobbyPlayers);
     });
 
     socket.on("start-game", () => {

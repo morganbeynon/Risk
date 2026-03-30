@@ -39,7 +39,7 @@ export default function WinPopUp({ visible, winner, onConfirm }) {
                         color: "black",
                     }}
                 >
-                    {winner.id} won
+                    {winner.id} won!
                 </span>
 
                 <button
@@ -48,7 +48,7 @@ export default function WinPopUp({ visible, winner, onConfirm }) {
                     }}
                     onClick={onConfirm}
                 >
-                    Play another game
+                    Play Again
                 </button>
             </div>
         </div>

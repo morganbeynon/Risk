@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from "react";
 import socket from '../socket';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export default function LobbyScreen({ setScreenPlayer, onGameStart }) {
+    const location = useLocation();
+    const resumedState = location.state;
+
+    const [name, setName] = useState(resumedState?.name || "");
+    const [joined, setJoined] = useState(!!resumedState?.name);
     const navigate = useNavigate();
-    const [name, setName] = useState("");
-    const [joined, setJoined] = useState(false);
     const [lobby, setLobby] = useState([]);
     const [isHost, setIsHost] = useState(false);
 
@@ -39,9 +42,14 @@ export default function LobbyScreen({ setScreenPlayer, onGameStart }) {
     }
 
     const getInstructions = () => {
-        navigate("/InstructionScreen")
+        navigate("/InstructionScreen", { state: { name, lobby, isHost } })
     }
     useEffect(() => {
+        if (resumedState?.name) {
+            socket.emit("player-joined", resumedState.name);
+            setScreenPlayer(resumedState.name);
+        }
+
         socket.on("lobby-update", (players) => {
             setLobby(players);
     
