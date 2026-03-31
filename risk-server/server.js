@@ -268,6 +268,17 @@ io.on("connection", (socket) => {
         lobbyPlayers.push({ socketId: `bot_${random}`, name: botName, isBot: true });
         io.emit("lobby-update", lobbyPlayers);
     });
+
+    socket.on("remove-bot", () => {
+        const lastBotIndex = lobbyPlayers.findLastIndex(player => player.isBot);
+    if (lastBotIndex === -1){
+        return;
+    } 
+    
+    lobbyPlayers.splice(lastBotIndex, 1);
+    io.emit("lobby-update", lobbyPlayers);
+    });
+
 });
 
 server.listen(5000, () => {

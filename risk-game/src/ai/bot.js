@@ -22,6 +22,9 @@ const Bot= {
     repeatDeploy(engine, bot, territories){
         let troops = bot.deployableTroops
         let moves = []
+
+
+        
         while (troops > 0){
             let move = this.calcDeploy(engine, bot, troops, territories)
             if (!move || move.action === "nextPhase" || move.payload.amount <= 0) {
@@ -32,6 +35,9 @@ const Bot= {
         }
         moves.push({ action: "nextPhase", payload: {} });
         return moves
+
+
+
     },
 
     calcDeploy(engine, bot, troops, territories){

@@ -40,6 +40,9 @@ export default function LobbyScreen({ setScreenPlayer, onGameStart }) {
     const addBot = () => {
         socket.emit("add-bot");
     }
+    const removeBot = () => {
+        socket.emit("remove-bot")
+    }
 
     const getInstructions = () => {
         navigate("/InstructionScreen", { state: { name, lobby, isHost } })
@@ -110,6 +113,26 @@ export default function LobbyScreen({ setScreenPlayer, onGameStart }) {
             ) : (
                 <>
                 <div style={{ textAlign: "center" }}>
+                    <div>
+                        <button
+                                    style={{
+                                        background: "black",
+                                        border: "black",
+                                        padding: "7.5px 30px",
+                                        fontSize: "15px",
+                                        fontWeight: "bold",
+                                        position: "absolute",
+                                        top: 10,
+                                        right: 200,
+                                        color: "white",
+                                        borderRadius: "10px",
+                                        marginTop: "20px"
+                                    }}
+                                    onClick={getInstructions}
+                                >
+                                    How To Play
+                        </button>
+                    </div>
                     <h3>Lobby ({lobby.length}/6)</h3>
                     <ul>
                         {lobby.map((p) => (
@@ -137,27 +160,10 @@ export default function LobbyScreen({ setScreenPlayer, onGameStart }) {
                     {isHost && (
                         <button
                             style={{
-                                background: "black",
-                                border: "black",
-                                padding: "15px 30px",
-                                fontSize: "20px",
-                                fontWeight: "bold",
-                                color: "white",
-                                borderRadius: "10px",
-                                marginTop: "20px"
-                            }}
-                            onClick={addBot}
-                        >
-                            Add Bot
-                        </button>
-                    )}
-                    
-                    {isHost && (
-                        <button
-                            style={{
                                 background: buttonColour,
                                 cursor: cursor,
                                 opacity: opacity,
+                                flexDirection: "column", 
                                 border: "black",
                                 padding: "15px 30px",
                                 fontSize: "20px",
@@ -172,26 +178,49 @@ export default function LobbyScreen({ setScreenPlayer, onGameStart }) {
                             Begin Game
                         </button>
                     )}
-
-                        
-                </div>
-                <div>
-                    <button
+                    <div style={{ 
+                        display: "flex", 
+                        flexDirection: "row", 
+                        gap: "10px", 
+                        marginTop: "20px" }}>
+                        {isHost && (
+                            <button
                                 style={{
                                     background: "black",
                                     border: "black",
-                                    padding: "7.5px 30px",
+                                    padding: "10px 15px",
                                     fontSize: "15px",
                                     fontWeight: "bold",
                                     color: "white",
                                     borderRadius: "10px",
-                                    marginTop: "20px"
+                                    marginTop: "5px"
                                 }}
-                                onClick={getInstructions}
+                                onClick={addBot}
                             >
-                                How To Play
-                    </button>
+                                Add Bot
+                            </button>
+                        )}
+
+                        {isHost && (
+                            <button
+                                style={{
+                                    background: "black",
+                                    border: "black",
+                                    padding: "10px 15px",
+                                    fontSize: "15px",
+                                    fontWeight: "bold",
+                                    color: "white",
+                                    borderRadius: "10px",
+                                    marginTop: "5px"
+                                }}
+                                onClick={removeBot}
+                            >
+                                Remove Bot
+                            </button>
+                        )}
+                    </div>
                 </div>
+                
                 </>
             )}
         </div>
