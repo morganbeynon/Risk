@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import * as Components from "../components";
 import MapGrid from "../components/mapGrid";
-
+import { useNavigate, useLocation } from "react-router-dom";
 import socket from '../socket'
 
 
@@ -15,6 +15,9 @@ export default function GameScreen({screenPlayer}) {
     const [gameState, setGameState] = useState(null);
     const [phase, setPhase] = useState(null);
     let myTurn = false
+    const location = useLocation();
+    const { name, lobby, isHost } = location.state
+    const navigate = useNavigate();
 
     useEffect(() => {
         socket.on("game-state", (state) => {
@@ -165,7 +168,7 @@ export default function GameScreen({screenPlayer}) {
                     visible={!!winner}
                     winner={winner}
                     onConfirm={() => {
-                        window.location.reload();
+                        navigate("/", { state: { name, lobby, isHost } })
                     }}
                 />
             </div>

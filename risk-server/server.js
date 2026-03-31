@@ -37,48 +37,93 @@ function sortTime(){
     }, duration);
 }
 
+let botRunning = false;
+
 function botTurn(){
-    if (!playingGame || !engine){
-        return
-    }
-    const currentPlayer = engine.getCurrentPlayer()
-    if (!currentPlayer || currentPlayer.isBot == false){
-        return
-    }
-    engine.redeemCards(currentPlayer)
-    const move = Bot.chooseAction(engine, currentPlayer)
-    if (!move){
-        return
-    }
-    const result = engine.applyAction(move.action, move.payload)
-
-    if (move.action === "attack" && result && result.result === true) {
-        console.log(`Bot con nvbquered territory! Moving ${result.troops} troops.`);
-        
-        engine.applyAction("moveAfterAttack", {
-            sourceTerr: move.payload.territory,
-            moveTerr: move.payload.selectedTerritory,
-            amount: result.troops
-        });
-    }
-
-    io.emit("game-state", { ...engine.serialise(), turnEndTime });
     
-    if (move.action === "fortify") {
-        engine.nextTurn();
-        sortTime();        
-        return;           
+    if (!playingGame || !engine || botRunning){
+        
+        return
+    }
+    botRunning = true
+    
+    const winner = engine.checkWinner();
+    if (winner) {
+        engine.winner = winner;
+        playingGame = false;
+        clearTimeout(timeout);
+        timeout = null;
+        io.emit("game-state", { ...engine.serialise(), turnEndTime });
+        botRunning = false
+        return;
     }
 
-
-    if (engine.turn === engine.players.indexOf(currentPlayer)) {
-        setTimeout(botTurn, 1000); 
+    const currentPlayer = engine.getCurrentPlayer()
+    const phase = engine.getPhase()
+    if (!currentPlayer || currentPlayer.isBot == false){
+        botRunning = false
+        return
+    }
+    if (engine.getPhase() == "Deploy"){
+        engine.redeemCards(currentPlayer);
+        const moves = Bot.chooseAction(engine, currentPlayer); // returns array
+        if (!moves){ 
+            botRunning = false
+            return;
+        }
+        let remaining = currentPlayer.deployableTroops;
+        for (const m of moves) {
+            if (m.action === "nextPhase"){
+                engine.applyAction(m.action, m.payload);
+                break;
+            }
+            if (m.payload.amount <= 0 || m.payload.amount > remaining){
+                break;
+            }
+            remaining -= m.payload.amount;
+            engine.applyAction(m.action, m.payload)
+        }
     }
     else {
-        sortTime();
+        const move = Bot.chooseAction(engine, currentPlayer);
+        if (!move) {
+            botRunning = false
+            return;
+        }
+
+        const result = engine.applyAction(move.action, move.payload);
+
+        if (move.action === "attack" && result?.result === true) {
+            console.log(`Bot conquered territory! Moving ${result.troops} troops.`);
+            engine.applyAction("moveAfterAttack", {
+                sourceTerr: move.payload.territory,
+                moveTerr: move.payload.selectedTerritory,
+                amount: result.troops
+            });
+        }
     }
     
+   
+    const nextPlayer = engine.getCurrentPlayer();
+    const nextPhase = engine.getPhase()
+    if (nextPlayer.id !== currentPlayer.id) {
+        sortTime();
+        botRunning = false 
+        return;     
+    }
+
+    if (nextPhase !== phase) {
+        sortTime();
+        botRunning = false
+        return
+    }
+
+
+    io.emit("game-state", { ...engine.serialise(), turnEndTime });
+    setTimeout(botTurn, 1000);
+    botRunning = false
 }
+
 io.on("connection", (socket) => {
     console.log("Client connected", socket.id);
     socket.on("player-joined", (name) => {
@@ -93,7 +138,7 @@ io.on("connection", (socket) => {
 
         const existing = lobbyPlayers.findIndex(p => p.socketId === socket.id);
     if (existing !== -1) {
-        lobbyPlayers[existing].name = name; // update in place
+        lobbyPlayers[existing].name = name; 
     } else {
         lobbyPlayers.push({ socketId: socket.id, name });
     }

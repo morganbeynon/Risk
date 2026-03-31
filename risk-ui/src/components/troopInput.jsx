@@ -2,7 +2,7 @@
 import React from 'react';
 
 
-export default function TroopInput({phase, onConfirm, colour, visible, validAmount}){
+export default function TroopInput({phase, onConfirm, colour, visible, validAmount, onClose}){
     if (!visible) return null;
     const [amount, setAmount] = React.useState("") 
 
@@ -27,7 +27,9 @@ export default function TroopInput({phase, onConfirm, colour, visible, validAmou
         text = `You can move ${validAmount} troops`
     }
 
-
+    const closeOverlay = () => {
+        onClose()
+    }
     return(
         
         <div 
@@ -43,10 +45,12 @@ export default function TroopInput({phase, onConfirm, colour, visible, validAmou
             justifyContent: "center",
             zIndex: 1000,
         }} >
+            
             <div
             style= {{
-                width: 300,
-                height: 100,
+                position: "relative",
+                width: 400,
+                height: 150,
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
@@ -57,6 +61,22 @@ export default function TroopInput({phase, onConfirm, colour, visible, validAmou
                 padding: 20
             }}
             >
+                <button
+                    onClick={closeOverlay}
+                    style={{
+                        position: "absolute",
+                        top: 10,
+                        right: 5,
+                        background: "transparent",
+                        border: "none",
+                        fontSize: 18,
+                        fontWeight: "bold",
+                        cursor: "pointer",
+                        color: "red"
+                    }}
+                >
+                        ×
+                </button>
                 <span style={{
                     fontWeight: "bold",
                     textAlign: "center",

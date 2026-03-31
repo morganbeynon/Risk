@@ -217,6 +217,7 @@ export default function MapGrid({myTurn, territories, players, currentPlayer, ph
 
                     }
                 }
+                onClose={() => setIsVisible(false)}
             
             />
         </div>

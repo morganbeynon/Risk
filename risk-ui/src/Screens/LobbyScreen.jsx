@@ -33,7 +33,7 @@ export default function LobbyScreen({ setScreenPlayer, onGameStart }) {
     const startGame = () => {
         if (ready) {
             socket.emit("start-game");
-            navigate("/GameScreen");
+            navigate("/GameScreen", { state: { name, lobby, isHost } });
         }
     };
 
@@ -62,7 +62,7 @@ export default function LobbyScreen({ setScreenPlayer, onGameStart }) {
 
         socket.on("game-start", (initialState) => {
             onGameStart(initialState);
-            navigate('/GameScreen');
+            navigate('/GameScreen', { state: { name, lobby, isHost } });
         });
 
         return () => {
@@ -108,6 +108,7 @@ export default function LobbyScreen({ setScreenPlayer, onGameStart }) {
                     </button>
                 </div>
             ) : (
+                <>
                 <div style={{ textAlign: "center" }}>
                     <h3>Lobby ({lobby.length}/6)</h3>
                     <ul>
@@ -172,23 +173,26 @@ export default function LobbyScreen({ setScreenPlayer, onGameStart }) {
                         </button>
                     )}
 
-                        <button
-                            style={{
-                                background: "black",
-                                border: "black",
-                                padding: "15px 30px",
-                                fontSize: "20px",
-                                fontWeight: "bold",
-                                color: "white",
-                                borderRadius: "10px",
-                                marginTop: "20px"
-                            }}
-                            onClick={getInstructions}
-                        >
-                            How To Play
-                        </button>
+                        
                 </div>
-                
+                <div>
+                    <button
+                                style={{
+                                    background: "black",
+                                    border: "black",
+                                    padding: "7.5px 30px",
+                                    fontSize: "15px",
+                                    fontWeight: "bold",
+                                    color: "white",
+                                    borderRadius: "10px",
+                                    marginTop: "20px"
+                                }}
+                                onClick={getInstructions}
+                            >
+                                How To Play
+                    </button>
+                </div>
+                </>
             )}
         </div>
     );

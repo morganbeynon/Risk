@@ -8,7 +8,7 @@ const Bot= {
             id => engine.territories.find(t => t.id === id))
         const phase = engine.getPhase()
         if (phase == "Deploy"){
-            return this.calcDeploy(engine, bot, territories)
+            return this.repeatDeploy(engine, bot, territories)
         }
         else if (phase == "Attack"){
             return this.calcAttack(engine, bot, territories)
@@ -18,13 +18,31 @@ const Bot= {
         }
 
     },
-    calcDeploy(engine, bot, territories){
-        if (bot.deployableTroops <= 0) {
+
+    repeatDeploy(engine, bot, territories){
+        let troops = bot.deployableTroops
+        let moves = []
+        while (troops > 0){
+            let move = this.calcDeploy(engine, bot, troops, territories)
+            if (!move || move.action === "nextPhase" || move.payload.amount <= 0) {
+                break;
+            }
+            troops -= move.payload.amount
+            moves.push(move)
+        }
+        moves.push({ action: "nextPhase", payload: {} });
+        return moves
+    },
+
+    calcDeploy(engine, bot, troops, territories){
+        if (troops <= 0) {
             return { action: "nextPhase", payload: {} };
         }
         let potentialTerr = null
         let borderTerrs = new Set()
         let greatestDiff = -Infinity
+        let amount = 0
+        let threats = []
         
         for (const terr of territories){
             let isBorder = false
@@ -59,6 +77,7 @@ const Bot= {
                     if (difference > greatestDiff){
                         potentialTerr = borderTerr
                         greatestDiff = difference
+                        amount = Math.min(difference + 2, troops);
                     }
                 }
             }
@@ -67,13 +86,15 @@ const Bot= {
 
         if (!potentialTerr){
             potentialTerr = territories[0]
+            amount = troops
         }
+        
         return {
                 action: "deploy",
                 payload: {
                     player: bot,
                     territory: potentialTerr,         
-                    amount: bot.deployableTroops 
+                    amount: amount
                 }
             };
     },
@@ -82,6 +103,7 @@ const Bot= {
         let toTerr = null
         let fromTerr = null
         let difference = 0
+        let bestScore = -Infinity
         for (const terr of territories){
             if (terr.troopCount > 1){
                 let allNeighbourIds = [...terr.adjacent];
@@ -93,18 +115,32 @@ const Bot= {
                 for (const neigh of allNeighbourIds){
                     let neighbour = engine.territories.find(t => t.id === neigh);
                     if (neighbour && neighbour.owner != bot.id && neighbour.owner != null){
-                        if (terr.troopCount - neighbour.troopCount > difference){
+                        let ratio = (terr.troopCount - neighbour.troopCount) / terr.troopCount
+                        if (ratio < 0.45){
+                            continue
+                        }
+                        let enemyS = 0
+                        for (const adj of neighbour.adjacent){
+                            const adjacent = engine.territories.find(t => t.id === adj)
+                            if (adjacent && adjacent.owner !== bot.id && adjacent.owner !== null){
+                                enemyS += 1
+                            }
+                        }
+                        const score = ratio - (enemyS * 0.10);
+                        
+                        if (score > bestScore){
                             toTerr = neighbour
                             fromTerr = terr
-                            difference = terr.troopCount - neighbour.troopCount
+                            bestScore = score
                         }
                     } 
                 }
             }
         }
-        if (toTerr == null || fromTerr == null || difference == 0){
+        if (toTerr == null || fromTerr == null){
             return{action: "nextPhase", payload: {}}
         }
+        
         return {
                 action: "attack",
                 payload: {

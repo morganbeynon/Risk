@@ -44,7 +44,7 @@ export default function cardPopUp({onConfirm, colour, visible, value, checkout, 
         text = "You can only redeem cards whilst in the deploy phase"
     }
     if (checkout && phase == "Deploy"){
-        buttonColour = "white"
+        buttonColour = "green"
         cursor = "pointer"
         opacity = 1
     }
@@ -185,7 +185,7 @@ export default function cardPopUp({onConfirm, colour, visible, value, checkout, 
                     background: buttonColour,
                     cursor: cursor,
                     opacity: opacity,
-                   border: "2px solid #000000"
+                    border: "2px solid #000000"
                 }}
                 onClick={handleConfirm}
                 >
