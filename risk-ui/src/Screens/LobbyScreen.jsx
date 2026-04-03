@@ -48,11 +48,6 @@ export default function LobbyScreen({ setScreenPlayer, onGameStart }) {
         navigate("/InstructionScreen", { state: { name, lobby, isHost } })
     }
     useEffect(() => {
-        if (resumedState?.name) {
-            socket.emit("player-joined", resumedState.name);
-            setScreenPlayer(resumedState.name);
-        }
-
         socket.on("lobby-update", (players) => {
             setLobby(players);
     
@@ -67,6 +62,11 @@ export default function LobbyScreen({ setScreenPlayer, onGameStart }) {
             onGameStart(initialState);
             navigate('/GameScreen', { state: { name, lobby, isHost } });
         });
+
+        if (resumedState?.name) {
+            socket.emit("player-joined", resumedState.name);
+            setScreenPlayer(resumedState.name);
+        }
 
         return () => {
             socket.off("lobby-update");

@@ -440,14 +440,15 @@ const MapGeneration= {
             
     assignTerritories(){
         const shuffledTerritories = [...this.territories].sort(() => Math.random() - 0.5)
+        let index = 0
         for (let i = 0; i < shuffledTerritories.length; i++){
-            const makeCheck = Math.round(Math.random()) * 3
-            if (makeCheck < 1/3){
-                const currentPlayer = this.players[i % this.players.length]
+            if (Math.random() < 0.75){
+                const currentPlayer = this.players[index % this.players.length]
                 const currentTerritory = shuffledTerritories[i]
                 currentTerritory.owner = currentPlayer.id
                 currentTerritory.troopCount = 1
                 currentPlayer.territories.push(currentTerritory.id)
+                index++;
             }
         }
     }

@@ -50,11 +50,15 @@ function botTurn(){
     const winner = engine.checkWinner();
     if (winner) {
         engine.winner = winner;
+        const finalState = engine.serialise(); 
         playingGame = false;
         clearTimeout(timeout);
         timeout = null;
-        io.emit("game-state", { ...engine.serialise(), turnEndTime });
-        botRunning = false
+        io.emit("game-state", { ...finalState, turnEndTime });
+        engine = null;
+        lobbyPlayers = [];
+        socketToPlayerMap = {};
+        botRunning = false;
         return;
     }
 
@@ -66,7 +70,7 @@ function botTurn(){
     }
     if (engine.getPhase() == "Deploy"){
         engine.redeemCards(currentPlayer);
-        const moves = Bot.chooseAction(engine, currentPlayer); // returns array
+        const moves = Bot.chooseAction(engine, currentPlayer); 
         if (!moves){ 
             botRunning = false
             return;
@@ -75,6 +79,7 @@ function botTurn(){
         for (const m of moves) {
             if (m.action === "nextPhase"){
                 engine.applyAction(m.action, m.payload);
+                console.log(`Bot deployed`);
                 break;
             }
             if (m.payload.amount <= 0 || m.payload.amount > remaining){
@@ -82,24 +87,36 @@ function botTurn(){
             }
             remaining -= m.payload.amount;
             engine.applyAction(m.action, m.payload)
+            console.log(`Bot deployed`);
         }
     }
     else {
-        const move = Bot.chooseAction(engine, currentPlayer);
-        if (!move) {
+        const m = Bot.chooseAction(engine, currentPlayer);
+        if (!m) {
             botRunning = false
             return;
         }
-
-        const result = engine.applyAction(move.action, move.payload);
-
-        if (move.action === "attack" && result?.result === true) {
-            console.log(`Bot conquered territory! Moving ${result.troops} troops.`);
-            engine.applyAction("moveAfterAttack", {
-                sourceTerr: move.payload.territory,
-                moveTerr: move.payload.selectedTerritory,
-                amount: result.troops
-            });
+        let moveList = null
+        if (Array.isArray(m)){
+            moveList = m
+        }
+        else{
+            moveList = [m]
+        }
+        for (const move of moveList){
+            const result = engine.applyAction(move.action, move.payload);
+            console.log(`Bot ${move.action}`);
+            if (move.action === "attack" && result?.result === true) {
+                console.log(`Bot conquered territory! Moving ${result.troops} troops.`);
+                engine.applyAction("moveAfterAttack", {
+                    sourceTerr: move.payload.territory,
+                    moveTerr: move.payload.selectedTerritory,
+                    amount: result.troops
+                });
+            }
+            if (move.action === "nextPhase"){
+                break;
+            }
         }
     }
     
@@ -212,6 +229,20 @@ io.on("connection", (socket) => {
             
             if (callback){
               callback(result);
+            }
+
+            const winner = engine.checkWinner();
+            if (winner) {
+                engine.winner = winner;
+                const finalState = engine.serialise();
+                playingGame = false;
+                clearTimeout(timeout);
+                timeout = null;
+                lobbyPlayers = [];
+                socketToPlayerMap = {};
+                engine = null;
+                io.emit("game-state", { ...finalState, turnEndTime });
+                return;
             }
 
             if (engine.turn !== oldTurn) {

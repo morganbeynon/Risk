@@ -206,12 +206,10 @@ class GameEngine{
             return { error: "INVALID_ATTACK_OWNED_TERRITORY" };
         }
 
-        // Must be adjacent
         if (!this.checkAdjacency(territory, selectedTerritory, "Attack")) {
             return { error: "INVALID_ATTACK_NOT_ADJACENT" };
         }
 
-        // Must have >1 troop
         if (territory.troopCount <= 1){
             return;
         } 
@@ -498,9 +496,6 @@ class GameEngine{
     getPlayerByTerr(id){
         return this.players.find(p => p.id == id)
     }
-    //TO ADD
-    //REDEEM CARDS - NEED UI
-    // TERRITORIES - NEED MAP GEN
 
     serialise(){
         return {
