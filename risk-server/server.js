@@ -82,11 +82,12 @@ function botTurn(){
                 console.log(`Bot deployed`);
                 break;
             }
-            if (m.payload.amount <= 0 || m.payload.amount > remaining){
-                break;
+            if (m.payload.amount <= 0 ){
+                continue;
             }
-            remaining -= m.payload.amount;
-            engine.applyAction(m.action, m.payload)
+            let amount = Math.min(m.payload.amount, remaining);
+            remaining -= amount;
+            engine.applyAction(m.action, amount)
             console.log(`Bot deployed`);
         }
     }
@@ -114,6 +115,13 @@ function botTurn(){
                     amount: result.troops
                 });
             }
+            if (move.action === "attack" && result?.result === false) {
+                engine.applyAction("nextPhase", {});
+                sortTime();
+                botRunning = false;
+                return;
+            }
+
             if (move.action === "nextPhase"){
                 break;
             }
