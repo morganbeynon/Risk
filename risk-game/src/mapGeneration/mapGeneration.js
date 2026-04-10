@@ -430,7 +430,7 @@ const MapGeneration= {
                 
                     const neighbours = this.getNeighbours(row,col)
                     const id = `${row},${col}`
-                    const territory = new Territory( row,col, id, 0, null, neighbours, null, false, null)
+                    const territory = new Territory( row,col, id, 0, null, neighbours, false, null)
                     this.territories.push(territory)
 
             } 
@@ -443,7 +443,7 @@ const MapGeneration= {
         let index = 0
         let playableTerrs = []
         for (let i = 0; i < this.players.length; i++) {
-            playableTerrs.push(shuffled[i]);
+            playableTerrs.push(shuffledTerritories[i]);
         }
         for (let i = this.players.length; i < shuffledTerritories.length; i++){
             if (Math.random() < 0.65){
