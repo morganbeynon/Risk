@@ -46,107 +46,118 @@ function botTurn(){
         return
     }
     botRunning = true
-    
-    const winner = engine.checkWinner();
-    if (winner) {
-        engine.winner = winner;
-        const finalState = engine.serialise(); 
-        playingGame = false;
-        clearTimeout(timeout);
-        timeout = null;
-        io.emit("game-state", { ...finalState, turnEndTime });
-        engine = null;
-        lobbyPlayers = [];
-        socketToPlayerMap = {};
-        botRunning = false;
-        return;
-    }
+    try{
+        const winner = engine.checkWinner();
+        if (winner) {
+            engine.winner = winner;
+            const finalState = engine.serialise(); 
+            playingGame = false;
+            clearTimeout(timeout);
+            timeout = null;
+            io.emit("game-state", { ...finalState, turnEndTime });
+            engine = null;
+            lobbyPlayers = [];
+            socketToPlayerMap = {};
+            botRunning = false;
+            return;
+        }
 
-    const currentPlayer = engine.getCurrentPlayer()
-    const phase = engine.getPhase()
-    if (!currentPlayer || currentPlayer.isBot == false){
-        botRunning = false
-        return
-    }
-    if (engine.getPhase() == "Deploy"){
-        engine.redeemCards(currentPlayer);
-        const moves = Bot.chooseAction(engine, currentPlayer); 
-        if (!moves){ 
+        const currentPlayer = engine.getCurrentPlayer()
+        const phase = engine.getPhase()
+        if (!currentPlayer || currentPlayer.isBot == false){
             botRunning = false
-            return;
+            return
         }
-        let remaining = currentPlayer.deployableTroops;
-        for (const m of moves) {
-            if (m.action === "nextPhase"){
-                engine.applyAction(m.action, m.payload);
-                console.log(`Bot deployed`);
-                break;
-            }
-            if (m.payload.amount <= 0 ){
-                continue;
-            }
-            let amount = Math.min(m.payload.amount, remaining);
-            remaining -= amount;
-            engine.applyAction(m.action, amount)
-            console.log(`Bot deployed`);
-        }
-    }
-    else {
-        const m = Bot.chooseAction(engine, currentPlayer);
-        if (!m) {
-            botRunning = false
-            return;
-        }
-        let moveList = null
-        if (Array.isArray(m)){
-            moveList = m
-        }
-        else{
-            moveList = [m]
-        }
-        for (const move of moveList){
-            const result = engine.applyAction(move.action, move.payload);
-            console.log(`Bot ${move.action}`);
-            if (move.action === "attack" && result?.result === true) {
-                console.log(`Bot conquered territory! Moving ${result.troops} troops.`);
-                engine.applyAction("moveAfterAttack", {
-                    sourceTerr: move.payload.territory,
-                    moveTerr: move.payload.selectedTerritory,
-                    amount: result.troops
-                });
-            }
-            if (move.action === "attack" && result?.result === false) {
-                engine.applyAction("nextPhase", {});
-                sortTime();
-                botRunning = false;
+        if (engine.getPhase() == "Deploy"){
+            engine.redeemCards(currentPlayer);
+            const moves = Bot.chooseAction(engine, currentPlayer); 
+            if (!moves){ 
+                botRunning = false
                 return;
             }
-
-            if (move.action === "nextPhase"){
-                break;
+            let remaining = currentPlayer.deployableTroops;
+            for (const m of moves) {
+                if (m.action === "nextPhase"){
+                    engine.applyAction(m.action, m.payload);
+                    console.log(`Bot deployed`);
+                    break;
+                }
+                if (m.payload.amount <= 0 ){
+                    continue;
+                }
+                let amount = Math.min(m.payload.amount, remaining);
+                remaining -= amount;
+                engine.applyAction(m.action, { ...m.payload, amount })
+                console.log(`Bot deployed`);
             }
         }
-    }
+        else {
+            const m = Bot.chooseAction(engine, currentPlayer);
+            if (!m) {
+                botRunning = false
+                return;
+            }
+            let moveList = null
+            if (Array.isArray(m)){
+                moveList = m
+            }
+            else{
+                moveList = [m]
+            }
+            for (const move of moveList){
+                const result = engine.applyAction(move.action, move.payload);
+                console.log(`Bot ${move.action}`);
+                if (move.action === "attack" && result?.result === true) {
+                    console.log(`Bot conquered territory! Moving ${result.troops} troops.`);
+                    engine.applyAction("moveAfterAttack", {
+                        sourceTerr: move.payload.territory,
+                        moveTerr: move.payload.selectedTerritory,
+                        amount: result.troops
+                    });
+                    io.emit("game-state", { ...engine.serialise(), turnEndTime });
+                }
+                if (move.action === "attack" && result?.result === false) {
+                    engine.applyAction("nextPhase", {});
+                    sortTime();
+                    botRunning = false;
+                    return;
+                }
+
+                if (move.action === "nextPhase"){
+                    break;
+                }
+            }
+        }
+        
     
-   
-    const nextPlayer = engine.getCurrentPlayer();
-    const nextPhase = engine.getPhase()
-    if (nextPlayer.id !== currentPlayer.id) {
-        sortTime();
-        botRunning = false 
-        return;     
-    }
+        const nextPlayer = engine.getCurrentPlayer();
+        const nextPhase = engine.getPhase()
+        if (nextPlayer.id !== currentPlayer.id) {
+            sortTime();
+            botRunning = false 
+            return;     
+        }
 
-    if (nextPhase !== phase) {
-        sortTime();
+        if (nextPhase !== phase) {
+            sortTime();
+            botRunning = false
+            return
+        }
+        
+
+        io.emit("game-state", { ...engine.serialise(), turnEndTime });
         botRunning = false
-        return
+        setTimeout(botTurn, 1000);
+        
+    }   
+    catch (err) {
+        console.error("botTurn error:", err);
+        sortTime();
+    }
+    finally{
+        botRunning = false
     }
 
-
-    io.emit("game-state", { ...engine.serialise(), turnEndTime });
-    setTimeout(botTurn, 1000);
-    botRunning = false
 }
 
 io.on("connection", (socket) => {
@@ -268,31 +279,18 @@ io.on("connection", (socket) => {
         if (!engine){
             return
         }
-        if (engine.players.length < 3){
-
-            if (timeout) {
-                clearTimeout(timeout);
-                timeout = null;
-            }
-
-            io.emit("game-ended", { 
-                message: "Player disconnected. Insufficient players: stopping game"
-            });
-
-            playingGame = false;
-            engine = null;
-            socketToPlayerMap = {}
-            return;
-        }
         let lostPlayer = engine.players.find(p => p.socketId === socket.id)
-        lobbyPlayers = lobbyPlayers.filter(p => p.socketId !== socket.id);
         if (!lostPlayer) {
+            lobbyPlayers = lobbyPlayers.filter(p => p.socketId !== socket.id);
             console.log("cant find lost player")
             return;
         }
-        lostPlayer.territories = []
+        lostPlayer.isBot = true
         io.emit("lobby-update", lobbyPlayers);
         if (engine.getCurrentPlayer().socketId === socket.id) {
+            if (timeout){ 
+                clearTimeout(timeout);
+            }
             engine.nextTurn();
             sortTime()
         }

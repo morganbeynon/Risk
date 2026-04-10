@@ -74,6 +74,16 @@ const Bot= {
             }
 
         }
+        if (remainingT > 0 && borderThreats.length > 0){
+            const topT = borderThreats[0].terr
+            const placement = placements.find(p => p.terr === topT);
+            if (placement){
+                placement.amount += remainingT
+            }
+            else{
+                placements.push({ terr: topT, amount: remainingT });
+            }
+        }
         for (const {terr, amount} of placements) {
             if (amount > 0) {
                 moves.push({
@@ -135,8 +145,8 @@ const Bot= {
                 for (const neigh of allNeighbourIds){
                     let neighbour = engine.territories.find(t => t.id === neigh);
                     if (neighbour && neighbour.owner != bot.id && neighbour.owner != null){
-                        let ratio = (terr.troopCount - neighbour.troopCount) / terr.troopCount
-                        if (ratio < 0.45){
+                        let ratio = terr.troopCount - neighbour.troopCount
+                        if (ratio < 3){
                             continue
                         }
                         let enemyS = 0

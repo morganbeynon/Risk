@@ -441,16 +441,24 @@ const MapGeneration= {
     assignTerritories(){
         const shuffledTerritories = [...this.territories].sort(() => Math.random() - 0.5)
         let index = 0
-        for (let i = 0; i < shuffledTerritories.length; i++){
-            if (Math.random() < 0.75){
-                const currentPlayer = this.players[index % this.players.length]
-                const currentTerritory = shuffledTerritories[i]
-                currentTerritory.owner = currentPlayer.id
-                currentTerritory.troopCount = 1
-                currentPlayer.territories.push(currentTerritory.id)
-                index++;
+        let playableTerrs = []
+        for (let i = 0; i < this.players.length; i++) {
+            playableTerrs.push(shuffled[i]);
+        }
+        for (let i = this.players.length; i < shuffledTerritories.length; i++){
+            if (Math.random() < 0.65){
+                playableTerrs.push(shuffledTerritories[i])
             }
         }
+        for (const terr of playableTerrs){
+            const currentPlayer = this.players[index % this.players.length]
+            const currentTerritory = terr
+            currentTerritory.owner = currentPlayer.id
+            currentTerritory.troopCount = 1
+            currentPlayer.territories.push(currentTerritory.id)
+            index++;
+        }
+        
     }
 }
 export { MapGeneration };

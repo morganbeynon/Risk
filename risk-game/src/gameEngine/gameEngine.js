@@ -16,6 +16,7 @@ class Player{
         this.colour = colour
         this.recievedCard = recievedCard
         this.isBot = isBot
+        this.beat = false
     }
 }
 
@@ -194,7 +195,7 @@ class GameEngine{
         }
     }
 
-   attack(playerD, territoryD, selectedTerritoryD) {
+    attack(playerD, territoryD, selectedTerritoryD) {
         const player = this.players.find(p => p.id === playerD.id);
         const territory = this.territories.find(t => t.id === territoryD.id);
         const selectedTerritory = this.territories.find(t => t.id === selectedTerritoryD.id);
@@ -265,9 +266,15 @@ class GameEngine{
                 defender.territories = defender.territories.filter(id => id !== selectedTerritory.id);
             }
 
-            const attacker = this.players.find(p => p.id === territory.owner);
-            attacker.territories.push(selectedTerritory.id)
-
+            player.territories.push(selectedTerritory.id)
+            if (defender.territories.length == 0){
+                for (const card of defender.cards){
+                    player.cards.push(card)
+                    defender.cards = []
+                    
+                }
+                defender.beat = true
+            }
             const winner = this.checkWinner();
             if (winner != null){
                 this.winner = winner

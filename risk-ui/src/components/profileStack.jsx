@@ -4,9 +4,11 @@ import Profile from "./profile"
 export default function ProfileStack({playerList}){
     const names = []
     const colours = []
+    const beaten = []
     for (const player of playerList){
         names.push(player.id)
         colours.push(player.colour)
+        beaten.push(player.beat)
     }
     return(
         <div
@@ -18,7 +20,7 @@ export default function ProfileStack({playerList}){
         >
             <div>
                 {names.map((name, i) => (
-                    <Profile name = {name} colour = {colours[i]}/>
+                    <Profile name = {name} colour = {colours[i]} beat = {beaten[i]}/>
                 ))}
             </div>
         </div>
