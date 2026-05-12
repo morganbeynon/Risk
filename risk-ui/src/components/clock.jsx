@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 export default function Clock({endTime, winner}){
     const [time, setTime] = useState(0);
-
+    //check for winner and calculate turn time using current time
     useEffect(() => {
         if (winner) return;
         const calculateTime = () => {
@@ -11,7 +11,7 @@ export default function Clock({endTime, winner}){
             setTime(diff);
         };
         calculateTime()
-
+        //clear timer and set new value
         const timer = setInterval(calculateTime, 1000);
         return () => clearInterval(timer);
     }, [time]);
@@ -42,8 +42,3 @@ export default function Clock({endTime, winner}){
     );
 }
 
-// Node.js Foundation. 
-// "The Node.js Event Loop, Timers, and process.nextTick()."
-// Technical Detail: 
-// This explains how Node.js handles non-blocking I/O and why setTimeout 
-// is preferred over a busy-wait loop for game turns.

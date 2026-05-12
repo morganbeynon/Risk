@@ -43,6 +43,7 @@ class Card{
         this.territoryID = territoryID
         this.type = type
     }
+    //Instantiates cards
     static newCard(engine){
         const cardTypes = ['Soldier', 'Cavalry', 'Tank']
         const type = cardTypes[(Math.floor(Math.random() * 3))]
@@ -64,7 +65,7 @@ class GameEngine{
         this.winner = null,
         this.linkRoutes = []
     }
-
+    //Entry to engine
     applyAction(action, parameters = {}){
         switch (action){
             case "nextTurn":
@@ -94,18 +95,22 @@ class GameEngine{
                     throw new Error("Invalid deploy parameters");
                 } 
                 return this.deploy(parameters.player, parameters.territory, parameters.amount)
-            case "fortify":
+            case "reinforce":
                 if (!parameters.player || !parameters.territory || !parameters.selectedTerritory || parameters.amount <= 0) {
-                    throw new Error("Invalid fortify parameters");
+                    throw new Error("Invalid reinforce parameters");
                 } 
-                return this.fortify(parameters.player, parameters.territory, parameters.selectedTerritory, parameters.amount)
+                return this.reinforce(parameters.player, parameters.territory, parameters.selectedTerritory, parameters.amount)
             case "moveAfterAttack":
+                if (!parameters.sourceTerr || !parameters.moveTerr || !parameters.amount){
+                    throw new Error("Invalid moveAfteAttack parameters");
+                }
                 return this.moveAfterAttack(parameters.sourceTerr, parameters.moveTerr, parameters.amount)
             case "nextPhase":
                 return this.nextPhase()
-             default:
+            case "checkWinner":
+                return this.checkWinner()
+            default:
                 throw new Error(`Unknown action: ${action}`);
-
         }
     }
     nextTurn(){
@@ -137,7 +142,7 @@ class GameEngine{
 
         return this.turn;
     }
-
+    //Checks for a winner
     checkWinner(){
         const owned = this.territories.filter(t => !t.isLink && t.owner !== null);
         if (owned.length == 0){
@@ -157,7 +162,7 @@ class GameEngine{
         const winner = this.players.find(p => p.id === owner);
         return winner
     }
-
+    //Get functions
     getCurrentPlayer(){
         return this.players[this.turn]
     }
@@ -165,7 +170,7 @@ class GameEngine{
     getPhase(){
         return Phases[this.phaseNumber]
     }
-
+    //Increments current phase
     nextPhase(){
         this.phaseNumber = this.phaseNumber + 1;
         if (this.phaseNumber > 2){
@@ -184,6 +189,7 @@ class GameEngine{
             return false;
         }
         let numAmount = Number(amount)
+        //Move amount of troops to territory
         if (territory.owner == player.id && !isNaN(numAmount)){
             territory.troopCount += numAmount
             player.placedTroops += numAmount
@@ -199,6 +205,7 @@ class GameEngine{
         const player = this.players.find(p => p.id === playerD.id);
         const territory = this.territories.find(t => t.id === territoryD.id);
         const selectedTerritory = this.territories.find(t => t.id === selectedTerritoryD.id);
+        //Validate all parameters
         if (!territory || !selectedTerritory){
              return;
         }
@@ -212,7 +219,7 @@ class GameEngine{
         }
 
         if (territory.troopCount <= 1){
-            return;
+            return {error: "INVALID_ATTACK_NO_TROOPS"};
         } 
 
 
@@ -220,61 +227,61 @@ class GameEngine{
         let DDice = selectedTerritory.troopCount;
 
         let AResults = [];
-        let DResults = [];
 
+        let DResults = [];
+        //Simulate all dice rolls
         while (ADice > 0 && DDice > 0) {
+            //Attack results
             AResults = Array(Math.min(3, ADice))
                 .fill(0)
                 .map(() => Math.floor(Math.random() * 6) + 1);
-
+            //Defender results
             DResults = Array(Math.min(2, DDice))
                 .fill(0)
                 .map(() => Math.floor(Math.random() * 6) + 1);
-
+            //Sort to descending
             AResults.sort((a, b) => b - a);
             DResults.sort((a, b) => b - a);
-
+            //Compare
             const rounds = Math.min(AResults.length, DResults.length);
             for (let i = 0; i < rounds; i++) {
                 if (AResults[i] > DResults[i]) DDice--;
                 else ADice--;
             }
         }
-
         territory.troopCount = ADice + 1;
         selectedTerritory.troopCount = DDice;
-
+        //If attacker wins
         if (DDice < 1) {
-            
-
             selectedTerritory.troopCount = 1;
             territory.troopCount = ADice;
-
+            //Give attacker new card
             if (!player.recievedCard) {
                 const newCard = Card.newCard(this);
                 player.cards.push(newCard);
                 player.recievedCard = true;
                 console.log("Card added:", newCard);
             }
-
+            //Change owner
             const oldOwnerId = selectedTerritory.owner;
-
             selectedTerritory.owner = territory.owner;
-
+            //Remove territory from defender
             const defender = this.players.find(p => p.id === oldOwnerId);
             if (defender) {
                 defender.territories = defender.territories.filter(id => id !== selectedTerritory.id);
             }
 
+            //Give Territory to attacker
             player.territories.push(selectedTerritory.id)
+            //Give attacker defenders cards if eliminated
             if (defender.territories.length == 0){
                 for (const card of defender.cards){
                     player.cards.push(card)
                     defender.cards = []
-                    
                 }
                 defender.beat = true
             }
+            //Check for win
             const winner = this.checkWinner();
             if (winner != null){
                 this.winner = winner
@@ -284,9 +291,13 @@ class GameEngine{
                 troops: Math.max(0, ADice - 1)
             };
         }
+        return {
+            result: false,
+            troops: 0
+        }
 
     }
-
+    //Handles troop movement after attack
     moveAfterAttack(sourceTerrD, moveTerrD, amount){
         const sourceTerr = this.territories.find(t => t.id === sourceTerrD.id);
         const moveTerr = this.territories.find(t => t.id === moveTerrD.id);
@@ -294,13 +305,15 @@ class GameEngine{
         moveTerr.troopCount += amount;
     }
 
-    fortify(playerD, territoryD, selectedTerrD, amount){
+    reinforce(playerD, territoryD, selectedTerrD, amount){
         const player = this.players.find(p => p.id === playerD.id);
         const territory = this.territories.find(t => t.id === territoryD.id);
         const selectedTerritory = this.territories.find(t => t.id === selectedTerrD.id);
         const numAmount = Number(amount);
+        //Check for adjacency
         if(this.checkAdjacency(territory,selectedTerritory, "Reinforce")){ 
             if(amount < territory.troopCount){
+                //Move troops
                 if (selectedTerritory.owner == territory.owner){
                 selectedTerritory.troopCount += numAmount
                 territory.troopCount -= numAmount
@@ -322,6 +335,7 @@ class GameEngine{
 
     checkAdjacency(territory, selectedTerritory, mode ){
         if (mode == "Attack"){
+            //check attributes and link routes
             if(territory.adjacent.includes(selectedTerritory.id) || (this.linkRoutes.some(
                 ([a, b]) =>
                     (a === territory.id && b === selectedTerritory.id) ||
@@ -333,6 +347,7 @@ class GameEngine{
                 return false
             }
         }
+        //Different mode for reinforce
         else{
             const connectingNeighbours = Array.from(this.getConnectingTerritories(territory.row, territory.col))
             if((connectingNeighbours.includes(selectedTerritory.id))){
@@ -346,8 +361,8 @@ class GameEngine{
     }
 
     checkCards(player){
+        //Counters
         let cardValues = 0;
-
         let soldierCount = 0;
         let cavalryCount = 0;
         let tankCount = 0;
@@ -357,6 +372,7 @@ class GameEngine{
         let inSoldier = 0
         let inTank = 0
         let inCav = 0
+        //Iterate cards and count types
         for (let i = 0 ; i < player.cards.length; i++){
             let currentCard = player.cards[i]
             if (currentCard.type == "Soldier"){
@@ -373,6 +389,7 @@ class GameEngine{
                 bonus = true
             }
         }
+        //handling one of a kind
         if (soldierCount > 0 && cavalryCount > 0 && tankCount > 0){
             for (let j = 0 ; j < player.cards.length; j++){
                 let innerCard = player.cards[j]
@@ -395,6 +412,7 @@ class GameEngine{
             tankCount -= 1
             checkOut = true
         }
+        //Handling 3 of 1
         else if (tankCount >= 3){
             for (let j = 0 ; j < player.cards.length; j++){
                 let innerCard = player.cards[j]
@@ -437,14 +455,16 @@ class GameEngine{
         return {checkOut, cardValues, removeCards}
     }
 
+    
     redeemCards(playerD){
         const player = this.players.find(p => p.id === playerD.id);
         if (!player) return false;
-
+        //use values returned from check cards
         const {checkOut, cardValues, removeCards} = this.checkCards(player);
         if (checkOut === false){
             return false;
         }
+        //remove redeemed cards from player
         const removeIds = new Set(removeCards.map(c => c.id));
         player.cards = player.cards.filter(c => !removeIds.has(c.id));
         player.deployableTroops += cardValues;
@@ -464,7 +484,7 @@ class GameEngine{
         }
         return neighbours
     }
-
+    //For troop value calc during deploy
     reinforcementValue(player){
         if(this.roundCount == 0){
             return 3;
@@ -473,10 +493,10 @@ class GameEngine{
         if (terrCount <= 3) {
             return 3;
         }
-        const terrTroops = Math.floor((terrCount - 3) / 4)
+        const terrTroops = Math.floor((terrCount - 3) / 3)
         return (3 + 2 * terrTroops)
     }
-    
+    //Intialising game functions
     initialiseGame(){
         console.log("initialiseGame CALLED");
         if (this._initialised == true){
@@ -496,14 +516,14 @@ class GameEngine{
         }
             
     }
-
+    //helper functions
     findTerritory(x, y){
         return this.territories.find(t => t.row === x && t.col === y)
     }
     getPlayerByTerr(id){
         return this.players.find(p => p.id == id)
     }
-
+    //Serialise to json
     serialise(){
         return {
             players: this.players,
@@ -515,22 +535,6 @@ class GameEngine{
             winner: this.winner
         };
     }
-
-    static deserialise(input){
-        const players = input.players.map(p =>
-        Object.assign(new Player(), p)
-        );
-        const engine = new GameEngine(
-            players,
-            input.territories,
-            input.turn,
-            input.phase
-        );
-        engine.winner = input.winner;
-
-        return engine;
-    }
-
     
 }
 

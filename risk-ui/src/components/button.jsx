@@ -5,6 +5,7 @@ export default function Button({visible, colour, onClick}){
     const bWidth = 100
     let cursor = ""
     let visibility = ""
+    //Checks for visibility properties
     if (visible){
         cursor = "pointer"
         visibility = "visible"

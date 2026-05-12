@@ -3,6 +3,7 @@ import shootingSoldier from "../images/shootingSoldier.png";
 import pointingSoldier from "../images/pointingSoldier.png";
 export default function PhaseIcon({phase}){
     let src = null
+    //Specific phase image
     if (phase == "Deploy"){
         src = parachuteSoldier
     }

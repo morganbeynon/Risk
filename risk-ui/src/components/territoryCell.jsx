@@ -18,7 +18,7 @@ export default function TerritoryCell({
   isLink
 }) {
   let photoD = null;
-
+  //translate direction
   if (direction === "Vertical") {
     photoD = vertical;
   } 
@@ -56,6 +56,7 @@ export default function TerritoryCell({
       }}
     >
       {isLink && photoD && (
+        //get link direciton image
         <img
           src={photoD}
           alt=""

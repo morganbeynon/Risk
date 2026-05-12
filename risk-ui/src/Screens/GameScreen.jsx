@@ -18,13 +18,8 @@ export default function GameScreen({screenPlayer}) {
     const location = useLocation();
     const { name, lobby, isHost } = location.state
     const navigate = useNavigate();
-
+    //Handle connection to gaem screen
     useEffect(() => {
-        socket.on("game-state", (state) => {
-            setGameState(state);
-        });
-
-
         socket.on("connect", () => {
             console.log("Socket Connected! ID:", socket.id);
         });
@@ -32,7 +27,7 @@ export default function GameScreen({screenPlayer}) {
         socket.on("connect_error", (err) => {
             console.error("Connection Error:", err.message);
         });
-
+        //set the game state for lobby
         const handleState = (state) => {
             console.log("Game State Received:", state);
             setGameState(state);
@@ -51,20 +46,21 @@ export default function GameScreen({screenPlayer}) {
             socket.off("connect_error");
         };
     }, []);
-
+    //Check for winner
     useEffect(() => {
         if (gameState?.winner) {
             setWinner(gameState.winner);
         }
     }, [gameState]);
 
-
+    //Loading screen if game isn't ready
     if (!gameState){
         return <div>Loading Game...</div>
     }
     else{
         myTurn = screenPlayer === gameState.players[gameState.turn].id;
     }
+    //Design of game screen.
     return(
             <div
                 style={{
@@ -119,6 +115,7 @@ export default function GameScreen({screenPlayer}) {
                             phase={phase}
                             update={setDeployed}
                             render={() => {}}
+                            winner = {winner}
                         />
 
                     </div>

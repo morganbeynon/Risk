@@ -3,7 +3,7 @@ import TerritoryCell from './territoryCell';
 import TroopInput from './troopInput';
 import socket from '../socket'
 
-export default function MapGrid({myTurn, territories, players, currentPlayer, phase, update, render}) {
+export default function MapGrid({myTurn, territories, players, currentPlayer, phase, update, render, winner}) {
     const rows = 6;
     const cols = 6;
     const player = currentPlayer
@@ -16,7 +16,7 @@ export default function MapGrid({myTurn, territories, players, currentPlayer, ph
     const [validAmount, setValidAmount] = React.useState(0);
     const [attackSource, setAttackSource] = React.useState(null);
 
-
+    //loading screen if territories not set yet
     if (!territories) return <div>Loading map...</div>;
 
     return (
@@ -27,14 +27,16 @@ export default function MapGrid({myTurn, territories, players, currentPlayer, ph
                 gap: "0px",
             }}
         >
+            
             {Array.from({ length: rows * cols }).map((_, i) => {
+                //iterate each cell.
                 const x = Math.floor(i / cols);
                 const y = i % cols;
                 const currTerritory = territories.find(t => t.row === x && t.col === y)
 
                 let troopCount = null;
                 let cellColour = "#1a2a6c" ;
-
+                //check for ownership and attributes 
                 if (currTerritory) {
                     if (currTerritory.owner !== null && currTerritory.owner !== undefined) {
                         const cellPlayer = players.find(p => p.id === currTerritory.owner);
@@ -43,7 +45,7 @@ export default function MapGrid({myTurn, territories, players, currentPlayer, ph
                     }
 
                 }
- 
+                //safety check
                 if (!currTerritory) {
                     return (
                         <TerritoryCell
@@ -56,6 +58,7 @@ export default function MapGrid({myTurn, territories, players, currentPlayer, ph
                 }
 
                 return (
+                    //instantiate individual territory cell and give specific phase handling
                     <TerritoryCell
                         key={`${x},${y}`}
                         id={player.id}
@@ -100,8 +103,7 @@ export default function MapGrid({myTurn, territories, players, currentPlayer, ph
                                     alert("You cannot attack your own territory");
                                     setSourceTerritory(null);
                                     return;
-                                }
-                                let result = null
+                                } 
                                 socket.emit("player-action", { action: "attack", payload: { player, territory: sourceTerritory, selectedTerritory: currTerritory } }, (response) => {
                                     update(true); 
                                     
@@ -169,15 +171,15 @@ export default function MapGrid({myTurn, territories, players, currentPlayer, ph
                     />
                 );
             })}
-
+        
             <TroopInput
+                //Make overlay 
                 phase={phase}
                 colour={player.colour}
                 validAmount={validAmount}
-                visible={isVisible}
+                visible={isVisible && !winner}
                 onConfirm={(amount) => {
-
-
+                    //specific phase overlay information
                     if (phase === "Deploy" && currentTerritory) {
                         socket.emit("player-action", { action: "deploy", payload: {player, territory: currentTerritory, amount} })
     
@@ -191,7 +193,7 @@ export default function MapGrid({myTurn, territories, players, currentPlayer, ph
                     else if (phase === "Reinforce" && sourceTerritories[0] && currentTerritory) {
                         
                         let fortTerr = sourceTerritories[0]
-                        socket.emit("player-action", { action: "fortify", payload: {player, territory: fortTerr, selectedTerritory: currentTerritory, amount} })
+                        socket.emit("player-action", { action: "reinforce", payload: {player, territory: fortTerr, selectedTerritory: currentTerritory, amount} })
     
                         update(true);
                         setSourceTerritories([]);

@@ -7,6 +7,7 @@ export default function TroopInput({phase, onConfirm, colour, visible, validAmou
     const [amount, setAmount] = React.useState("") 
 
     let text = ""
+    //standardise and validate number entry
     const handleConfirm = () => {
         const numAmount = parseInt(amount);
         if (!isNaN(numAmount) && numAmount <= validAmount && numAmount > 0) {
@@ -16,7 +17,7 @@ export default function TroopInput({phase, onConfirm, colour, visible, validAmou
         alert("Enter a valid number");
         }
     };
-
+    //Phase specific text
     if (phase == "Deploy"){
         text = `You have ${validAmount} troops to deploy`
     }

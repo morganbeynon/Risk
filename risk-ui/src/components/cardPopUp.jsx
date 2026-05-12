@@ -12,7 +12,7 @@ export default function cardPopUp({onConfirm, colour, visible, value, checkout, 
     let buttonColour = "grey"
     let cursor = "not-allowed"
     let opacity = 0.5
-    
+    //trigger redemption if checkout available
     const handleConfirm = () => {
         if (checkout){
             const troops = Number(value);
@@ -29,6 +29,7 @@ export default function cardPopUp({onConfirm, colour, visible, value, checkout, 
             return
         }
     };
+    //close the overlay if x is pressed.
     const closeOverlay = () => {
         onConfirm();
     }
@@ -37,6 +38,7 @@ export default function cardPopUp({onConfirm, colour, visible, value, checkout, 
         "Cavalry": calvaryImage,
         "Tank": tankImage,
     };
+    //phase dependant text.
     if (phase == "Deploy"){
         text = "You must have three of a kind or one of each to redeem cards"
     }
@@ -49,9 +51,7 @@ export default function cardPopUp({onConfirm, colour, visible, value, checkout, 
         opacity = 1
     }
 
-
     return(
-        
         <div 
         style = {{
             position: "fixed",
@@ -112,7 +112,9 @@ export default function cardPopUp({onConfirm, colour, visible, value, checkout, 
                         flexWrap: "wrap",
                         justifyContent: "center",
                     }}
+                    //Display cards if user has any, if not adequate text presented.
                 >
+                    
                     {player.cards.length === 0 ? (
                         <span style={{ color: "black", fontSize: 14 }}>
                             No cards

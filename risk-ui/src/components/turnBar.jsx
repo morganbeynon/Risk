@@ -3,6 +3,7 @@ export default function TurnBar({currentPlayer, colour, screenPlayer}){
     const tWidth = 200;
     let text = ""
     console.log(currentPlayer.id)
+    //handle differing players text
     if (currentPlayer.id == screenPlayer){
         text = "Your Turn"
     }

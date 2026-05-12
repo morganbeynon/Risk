@@ -33,6 +33,7 @@ export default function WinPopUp({ visible, winner, onConfirm }) {
                 }}
             >
                 <span
+                    //make overlay player specific
                     style={{
                         fontWeight: "bold",
                         textAlign: "center",
@@ -46,6 +47,7 @@ export default function WinPopUp({ visible, winner, onConfirm }) {
                     style={{
                         background: winner.colour,
                     }}
+                    //navigate back to lobby.
                     onClick={onConfirm}
                 >
                     Play Again

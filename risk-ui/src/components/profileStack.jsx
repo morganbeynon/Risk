@@ -19,7 +19,9 @@ export default function ProfileStack({playerList}){
             }}
         >
             <div>
+                
                 {names.map((name, i) => (
+                    //map each profile to a position in stack.
                     <Profile name = {name} colour = {colours[i]} beat = {beaten[i]}/>
                 ))}
             </div>

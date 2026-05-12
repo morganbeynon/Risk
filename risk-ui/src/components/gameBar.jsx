@@ -15,7 +15,7 @@ export default function GameBar({myTurn, player, phase}) {
     const [cardState, setCardState] = useState(null);
 
     let results = cardState;
-
+    //phase dependant text
     let text = "";
     if (phase === 'Deploy') {
         text = `Deploy ${player.deployableTroops} Troops`;
@@ -24,7 +24,7 @@ export default function GameBar({myTurn, player, phase}) {
     } else {
         text = "Reinforce";
     }
-
+    //trigger overlay
     const openCards = () => {
         if (!myTurn){
             return
@@ -35,7 +35,7 @@ export default function GameBar({myTurn, player, phase}) {
         setShowCards(true);
     };
 
-
+    //construct game bar = using components
     return (
         <div style={{ position: 'relative', width: barWidth, height: barHeight }}>
             <div

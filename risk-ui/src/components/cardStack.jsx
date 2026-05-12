@@ -3,6 +3,7 @@ import React from 'react';
 import playingCards from "../images/playingCards.jpg";
 export default function CardStack({player, onClick}){
     const length = player.cards.length ?? 0
+    //image of cards for game bar
     return(
         <div 
             style={{ width: 50,

@@ -1,6 +1,7 @@
 import { GameEngine } from "../gameEngine/gameEngine.js"
 
 const Bot= {
+    //entry to module
     chooseAction(engine, bot){
         const id = bot.id 
         const territoriesID = bot.territories
@@ -23,7 +24,7 @@ const Bot= {
         let troops = bot.deployableTroops
         let moves = []
         let borderThreats = []
-
+        //Check every owned territory
         for (const terr of territories){
             let isBorder = false
             let allNeighbourIds = [...terr.adjacent];
@@ -32,8 +33,10 @@ const Bot= {
                 if (b === terr.id) allNeighbourIds.push(a);
             } 
             let maxThreat = -Infinity
+            //Check neighbours to see if territory is a border 
             for (const neigh of allNeighbourIds){
                 const neighbour = engine.territories.find(t => t.id === neigh);
+                //calculate threat if so
                 if (neighbour && neighbour.owner !== null && neighbour.owner !== bot.id){
                     isBorder = true;
                     const threat = neighbour.troopCount - terr.troopCount;
@@ -48,6 +51,7 @@ const Bot= {
                 borderThreats.push({ terr, need: maxThreat });
             }
         }
+        //Put all troops in first territory if no border territories
         if (borderThreats.length === 0) {
             moves.push({
                 action: "deploy",
@@ -75,14 +79,13 @@ const Bot= {
 
         }
         if (remainingT > 0 && borderThreats.length > 0){
-            const topT = borderThreats[0].terr
-            const placement = placements.find(p => p.terr === topT);
-            if (placement){
-                placement.amount += remainingT
+            let index = 0
+            while (remainingT > 0){
+                placements.push({terr: borderThreats[index].terr, amount: 1})
+                remainingT--
+                index = (index + 1) % borderThreats.length
             }
-            else{
-                placements.push({ terr: topT, amount: remainingT });
-            }
+            
         }
         for (const {terr, amount} of placements) {
             if (amount > 0) {
@@ -106,13 +109,15 @@ const Bot= {
         let bestScore = -Infinity
         let beatablePlayers = null
     
-
-        beatablePlayers = this.checkBeatablePlayers(engine, bot, territories);
+        //calls beatable players function
+        beatablePlayers = this.checkBeatablePlayers(engine, bot);
+        //iterates each player checking if they can be beaten in one turn
         if (beatablePlayers.length > 0){
             for (const enemy of beatablePlayers){
                 for (const tID of enemy.territories){
                     let territory = engine.territories.find(t => t.id === tID);
                     let allNeighbourIds = [...territory.adjacent];
+                    //iterate all of their territories and links
                     for (const [a, b] of engine.linkRoutes) {
                         if (a === territory.id) allNeighbourIds.push(b);
                         if (b === territory.id) allNeighbourIds.push(a);
@@ -134,6 +139,7 @@ const Bot= {
                 }
             }
         }
+        //Expand if no beatable players
         for (const terr of territories){
             if (terr.troopCount > 1){
                 let allNeighbourIds = [...terr.adjacent];
@@ -156,9 +162,9 @@ const Bot= {
                                 enemyS += 1
                             }
                         }
-                        const score = ratio - (enemyS * 0.10);
+                        const score = ratio - (enemyS * 0.30);
                         
-                        if (score > bestScore){
+                        if (score > bestScore && terr.troopCount >= 3){
                             toTerr = neighbour
                             fromTerr = terr
                             bestScore = score
@@ -184,6 +190,7 @@ const Bot= {
 
     checkBeatablePlayers(engine, bot){
         let beatablePlayers = []
+        //iterate each player
         for (const player of engine.players){
             if (player.id == bot.id){
                 continue
@@ -192,6 +199,7 @@ const Bot= {
                 continue
             }
             let beatable = true
+            //check every territory - see if player can beat them realistically
             for (const terrId of player.territories){
                 const terr = engine.territories.find(t => t.id === terrId);
                 let beatableTerr = false;
@@ -204,6 +212,7 @@ const Bot= {
                 for (const neighID of allNeighbourIds){
                     const neighbour = engine.territories.find(t => t.id === neighID);
                     if (neighbour && neighbour.owner == bot.id){
+                        //over double troop count
                         if (((neighbour.troopCount - terr.troopCount) / neighbour.troopCount) > 0.5){
                             beatableTerr = true
                             break
@@ -229,7 +238,8 @@ const Bot= {
         let borderTerrs = new Set()
         let internalTerrs = new Set()
         let greatestDiff = -Infinity
-        
+        let toTerrThreatDifference = 0
+        //iterate every terr and classify border and internal territory
         for (const terr of territories){
             let isBorder = false
             let allNeighbourIds = [...terr.adjacent];
@@ -254,6 +264,7 @@ const Bot= {
         if (borderTerrs.size === 0){
             console.log("borderTerrs empty")
         }
+        //iterate border territory
         for (const borderTerr of borderTerrs){
             if (!borderTerr || !borderTerr.adjacent){
                 console.log("Border terr not there")
@@ -263,11 +274,13 @@ const Bot= {
                 if (a === borderTerr.id) allBorderNeighbourIds.push(b);
                 if (b === borderTerr.id) allBorderNeighbourIds.push(a);
             }
+            //find most threatened
             for (const adjTerr of allBorderNeighbourIds){
                 const adjacentTerr = engine.territories.find(t => t.id === adjTerr);
                 if (adjacentTerr && adjacentTerr.owner !== null && adjacentTerr.owner !== bot.id){
-                    let difference = adjacentTerr.troopCount - borderTerr.troopCount;
+                    let difference = (adjacentTerr.troopCount - borderTerr.troopCount) / borderTerr.troopCount;
                     if (difference > greatestDiff){
+                        toTerrThreatDifference = adjacentTerr.troopCount - borderTerr.troopCount
                         toTerr = borderTerr
                         greatestDiff = difference
                     }
@@ -279,19 +292,23 @@ const Bot= {
         if (!toTerr) {
             return { action: "nextPhase", payload: {} };
         }
-
+        //get connecting territories 
         const connectedTerrs = engine.getConnectingTerritories(toTerr.row, toTerr.col)
         let maxIValue = -Infinity
+        //find internal territory with largest troop count
         for (const internalTerr of internalTerrs) {
             if (internalTerr && connectedTerrs.has(internalTerr.id) && internalTerr.troopCount > maxIValue) {
                 maxIValue = internalTerr.troopCount;
                 fromTerr = internalTerr;
             }
         }
-          
+        let borderFrom = false
+        let cBest = -Infinity
+        let defensiveNeed = null
+        //if no internal, find safest border terr
         if (!fromTerr){
             borderTerrs.delete(toTerr)
-            let cBest = -Infinity
+            
             for (const borderTerr of borderTerrs){
                 if (!borderTerr || !borderTerr.adjacent){
                     console.log("Border terr not there")
@@ -306,23 +323,37 @@ const Bot= {
                     if (adjacentTerr && adjacentTerr.owner !== null && adjacentTerr.owner !== bot.id){
                         let difference = adjacentTerr.troopCount - borderTerr.troopCount;
                         if (difference > cBest && connectedTerrs.has(borderTerr.id) && borderTerr.troopCount > 1){
+                            borderFrom = true
                             fromTerr = borderTerr
                             cBest = difference
+                            defensiveNeed = difference
                         }
                     }
                 }
                 
             }
         }
+        //check the numbers are validated before returning the action
         if (toTerr && fromTerr && fromTerr.troopCount > 1 && engine.checkAdjacency(fromTerr, toTerr, "Reinforce")){
+            let amount = fromTerr.troopCount-1
+            if (borderFrom){
+                const needed = Math.max(1, toTerrThreatDifference) 
+                amount = Math.min(needed, defensiveNeed)
+                if (amount <= 0){
+                    return { 
+                        action: "nextPhase", 
+                        payload: {} 
+                    }
+                }
+            }
             return [
                 {
-                    action: "fortify",
+                    action: "reinforce",
                     payload: {
                         player: bot,
                         territory: fromTerr,       
                         selectedTerritory: toTerr,  
-                        amount: fromTerr.troopCount - 1 
+                        amount: amount 
                     }
                 },
                 { action: "nextPhase", payload: {} }

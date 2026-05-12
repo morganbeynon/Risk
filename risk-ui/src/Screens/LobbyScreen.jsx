@@ -11,7 +11,7 @@ export default function LobbyScreen({ setScreenPlayer, onGameStart }) {
     const navigate = useNavigate();
     const [lobby, setLobby] = useState([]);
     const [isHost, setIsHost] = useState(false);
-
+    //change colour if lobby isnt ready.
     const ready = isHost && lobby.length >= 2;
     let buttonColour = "grey"
     let opacity = 0.5
@@ -21,7 +21,7 @@ export default function LobbyScreen({ setScreenPlayer, onGameStart }) {
         opacity = 1
         cursor = "pointer"
     }
-
+    //handle player joining.
     const join = () => {
         if (name.trim()) {
             socket.emit("player-joined", name);
@@ -29,7 +29,7 @@ export default function LobbyScreen({ setScreenPlayer, onGameStart }) {
             setJoined(true);
         }
     }
-
+    //Handle game starting
     const startGame = () => {
         if (ready) {
             socket.emit("start-game");
@@ -47,6 +47,7 @@ export default function LobbyScreen({ setScreenPlayer, onGameStart }) {
     const getInstructions = () => {
         navigate("/InstructionScreen", { state: { name, lobby, isHost } })
     }
+    //Check for host joining
     useEffect(() => {
         socket.on("lobby-update", (players) => {
             setLobby(players);
@@ -75,6 +76,7 @@ export default function LobbyScreen({ setScreenPlayer, onGameStart }) {
     }, [onGameStart, navigate]); 
 
     return (
+        //Design
         <div style={{
             width: "100vw", 
             height: "100vh", 
@@ -91,8 +93,9 @@ export default function LobbyScreen({ setScreenPlayer, onGameStart }) {
                 }}>
                 RISK
             </h1>
-
+            
             {!joined ? (
+                //Different presentation if player has joined.
                 <div style={{ 
                     display: "flex", 
                     flexDirection: "column", 

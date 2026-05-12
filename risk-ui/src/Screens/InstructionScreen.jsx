@@ -26,10 +26,11 @@ export default function InstructionScreen(){
     const [index, setIndex] = useState(0);
     const location = useLocation();
     const { name, lobby, isHost } = location.state
-
+    //navigate back to lobby.
     const exit = () => {
         navigate("/", { state: { name, lobby, isHost } })
     }
+    //Slides for each topic.
     const overviewSlides = [
         {
             image: objective,
@@ -130,10 +131,9 @@ export default function InstructionScreen(){
             image: values,
             title: "Values",
             description: `Cards are rewarded after a succesful attack.\n
-             There are three types: Soldier, Cavalry and Tank \n
+             There are three types: Soldier, Cavalry and Tank. \n
              You need to three of a kind or one of each to redeem troops. \n
-             The resulting amount of each combination is pictured above.\n
-             Each card has a territory ID. If your card has aterritory ID belonging to you, a +2 troop bonus is added.`
+             Each card has a territory ID. If it belongs to you, a +2 troop bonus is added.`
         },
         {
             image: view,
@@ -159,15 +159,15 @@ export default function InstructionScreen(){
     
     const slides = slideMap[activeTab];
     const current = slides[index];
-
+    //Handle user switching tabs.
     const handleTabChange = (tab) => {
         setActiveTab(tab);
         setIndex(0);
     };
-
+    //in/decrement slide index.
     const previous = () => setIndex(i => Math.max(0, i - 1));
     const next = () => setIndex(i => Math.min(slides.length - 1, i + 1));
-    
+    //Navigate any players on instruction screen if game starts.
     useEffect(() => {
         socket.on("game-start", () => {
             navigate('/GameScreen');

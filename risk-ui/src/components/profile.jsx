@@ -21,9 +21,11 @@ export default function Profile({colour, name, beat}){
             >
                 {beat && (
                     <svg
+                        //red X through beaten players
                         viewBox="0 0 50 50"
                         style={{ position: "absolute", top: 0, left: 0, width: 50, height: 50 }}
                     >
+                        
                         <line x1="8" y1="8" x2="42" y2="42" stroke="black" strokeWidth="6" strokeLinecap="round"/>
                         <line x1="42" y1="8" x2="8" y2="42" stroke="black" strokeWidth="6" strokeLinecap="round"/>
                     </svg>
