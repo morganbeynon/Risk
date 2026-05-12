@@ -134,7 +134,11 @@ function botTurn(){
                     }
                     //serialise game 
                     io.emit("game-state", { ...engine.serialise(), turnEndTime });
-                    sortTime();
+                    const currentPlayer = engine.getCurrentPlayer();
+                    if (currentPlayer && currentPlayer.isBot) {
+                        setTimeout(botTurn, 1000); 
+                    }
+
                     botRunning = false;
                     return;
                 }
